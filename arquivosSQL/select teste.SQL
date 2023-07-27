@@ -1,0 +1,101 @@
+
+
+
+select DECODE(sign(PERDESC),-1,'ACRESCIMO','0,00') as ACRESCIMO from PCORCAVENDAI
+where NUMORCA='1092000819'
+and rownum <=1;
+
+select DECODE(sign(PERDESC),1,'DESCONTO','0,00') as DESCONTO from PCORCAVENDAI
+where NUMORCA='1092000819'
+and rownum <=1;
+
+SELECT (PTABELA - PVENDA) as DIFERENÇA FROM PCORCAVENDAI WHERE NUMORCA='1092000819';
+
+
+select QT,PTABELA, PERDESC,QT * PTABELA as tot_itens,
+(select sum (QT * PVENDA\)  from PCORCAVENDAI) as tot
+ from PCORCAVENDAI where NUMORCA='1092000819';
+ 
+select QT * (PTABELA * (1 - (PERDESC / 100))) as Vltotal from PCORCAVENDAI
+WHERE NUMORCA='1092000819'; 
+ 
+SELECT PVENDA - (QT * (PTABELA * (1 - (PERDESC / 100)))) AS diferenca
+FROM PCORCAVENDAI
+WHERE NUMORCA = '1092000819';
+
+
+select sum(QT * (PVENDA - PTABELA)) as TOT FROM PCORCAVENDAI WHERE NUMORCA='1078000434';
+
+select PVENDA - PTABELA as TOT FROM PCORCAVENDAI WHERE NUMORCA='1078000434';
+
+select DECODE(sign(sum(QT * (PVENDA - PTABELA))),1,'','0,00') as DESCONTO from PCORCAVENDAI
+where NUMORCA='1092000819'
+and rownum <=1;
+
+
+select case 
+           when sign(sum(QT * (PVENDA - PTABELA))) > 0
+           then to_char(sum(QT * (PVENDA - PTABELA)))
+           else '0,00' 
+           end as acres
+ from PCORCAVENDAI
+where NUMORCA='1078000434'
+--and rownum <=1;
+
+
+select case 
+           when sign(sum(QT * (PVENDA - PTABELA))) < 0
+           then to_char(sum(QT * (PVENDA - PTABELA)))
+           else '0,00' 
+           end as desct
+ from PCORCAVENDAI
+where NUMORCA='1078000434'
+--and rownum <=1;
+
+
+
+SELECT CODPROD, PVENDA, PTABELA, PERDESC, QT * (PTABELA * (1 - (PERDESC / 100))) as Vltotal, PVENDA - PTABELA as DIF  FROM PCORCAVENDAI 
+ WHERE NUMORCA='1078000434';
+ 
+ select DECODE(sign(sum(PVENDA - PTABELA)),1,sum(PVENDA-PTABELA),0.00) as DIF  FROM PCORCAVENDAI 
+ WHERE NUMORCA='1078000434';
+ 
+  select DECODE(sign(sum(PVENDA - PTABELA)),-1,sum(PVENDA-PTABELA),0.00) as DIF  FROM PCORCAVENDAI 
+ WHERE NUMORCA='1078000434';
+ 
+ 
+  select sum( DECODE(sign(PVENDA - PTABELA),1,PVENDA-PTABELA,0.00)) as DIF  FROM PCORCAVENDAI 
+ WHERE NUMORCA='1078000434';
+ 
+  select sum( DECODE(sign(PVENDA - PTABELA),-1,PVENDA-PTABELA,0.00)) as DIF  FROM PCORCAVENDAI 
+ WHERE NUMORCA='1078000434'; 
+
+select * from PCORCAVENDAI
+where NUMORCA='1078000434';
+
+consultaSQL(' select DECODE(sign(PVENDA - PTABELA),1,PVENDA-PTABELA,0.00) as DIF  FROM PCORCAVENDAI 
+ WHERE NUMORCA='++' and CODPROD='+);
+ 
+ 
+ SELECT DECODE(SIGN(SUM(PVENDA - PTABELA)),1, SUM(PVENDA - PTABELA), 0.00) AS DIF
+FROM PCORCAVENDAI
+WHERE NUMORCA = '1078000434';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 

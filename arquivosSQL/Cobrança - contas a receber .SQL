@@ -1,0 +1,304 @@
+
+select  PCEMPR.NOME,
+        PCSTATUSCOBCLI.STATUSCOB
+         ,PCHISTCOB.OBS2
+          ,PCHISTCOB.OBS1
+from PCHISTCOB
+join PCEMPR on PCHISTCOB.CODFUNC = PCEMPR.MATRICULA
+join PCSTATUSCOBCLI on PCHISTCOB.CODSTATUSCOB = PCSTATUSCOBCLI.CODSTATUSCOB
+join PCHISTCOBI on PCHISTCOB.NUMREGCOB = PCHISTCOBI.NUMREGCOB
+join PCPREST on PCPREST.NUMTRANSVENDA = PCHISTCOBI.NUMTRANSVENDA 
+where PCPREST.NUMTRANSVENDA='161316'
+and rownum <=1;
+
+--TROCANDO A TABELA EM FROM PELO PCHISTCOB( A QUAL POSSUIA TODAS AS INFORMAÇÕES DA CONSULTA) 
+select PCEMPR.NOME, PCSTATUSCOBCLI.STATUSCOB, PCHISTCOB.OBS2, PCHISTCOB.OBS3
+from PCHISTCOB
+join PCHISTCOBI on PCHISTCOB.NUMREGCOB = PCHISTCOBI.NUMREGCOB
+join PCPREST on PCHISTCOBI.NUMTRANSVENDA = PCPREST.NUMTRANSVENDA
+join PCEMPR on PCPREST.CODFUNCULTALTER = PCEMPR.MATRICULA
+join PCSTATUSCOBCLI on PCPREST.CODSTATUSCOB = PCSTATUSCOBCLI.CODSTATUSCOB
+where PCPREST.CODCLI = '4274'
+and PCPREST.DTVENC <= SYSDATE
+and PCPREST.DTPAG is null;
+
+
+SELECT OBS,OBS1,OBS2 FROM PCPEDC
+WHERE NUMPED='1114000154';
+
+SELECT * FROM PCHISTCOB
+WHERE NUMREGCOB='602';
+
+SELECT * FROM PCHISTCOBI
+WHERE NUMREGCOB='602';
+
+SELECT * FROM PCSTATUSCOBCLI;
+
+------------------------------------------------
+
+select * from  PCPREST 
+where CODCLI='21789';
+
+
+select  CODCLI, PREST, DUPLIC,  DTVENC, DTPAG, DTULTALTER, NUMTRANSVENDA, VALORORIG, VPAGO from PCPREST
+where PCPREST.CODCLI='450'
+and PCPREST.DTVENC <= SYSDATE
+and PCPREST.DTPAG is null
+order by PCPREST.DTVENC;
+-----------------
+
+--MARK 1
+select distinct
+    PCPREST.CODFILIAL,
+     PCCLIENT.CLIENTE,
+      PCCLIENT.FANTASIA,
+       PCPREST.CODUSUR, 
+        PCUSUARI.NOME,
+         PCPREST.VALOR,
+          PCPREST.VLRTOTDESPESASEJUROS,
+           PCPREST.CODCLI,
+            PCPREST.DTEMISSAO,
+             PCPREST.DUPLIC,
+              PCPREST.PREST,
+               PCHISTCOB.DATA as DTCOB,
+                PCPREST.DTVENC,
+                 PCPREST.DTVENCORIG,
+                  PCPREST.DTPAG,           
+                   case when PCPREST.DTVENC >= SYSDATE then 0
+                    else round(SYSDATE - PCPREST.DTVENC,0) end as ATRASO2,
+                     PCCOB.COBRANCA,
+                      PCEMPR.NOME,  
+                       PCHISTCOBI.ATRASO,
+                        PCSTATUSCOBCLI.STATUSCOB,
+                         PCHISTCOB.OBS2,
+                          PCHISTCOB.OBS3
+
+from 
+    (PCPREST 
+    left join PCHISTCOBI on PCHISTCOBI.NUMTRANSVENDA = PCPREST.NUMTRANSVENDA and PCPREST.PREST = PCHISTCOBI.PREST)
+    left join PCHISTCOB on PCHISTCOB.NUMREGCOB = PCHISTCOBI.NUMREGCOB
+    left join PCEMPR on PCHISTCOB.CODFUNC = PCEMPR.MATRICULA 
+    left join PCSTATUSCOBCLI on PCPREST.CODSTATUSCOB = PCSTATUSCOBCLI.CODSTATUSCOB 
+    join PCCOB on PCPREST.CODCOB = PCCOB.CODCOB
+    join PCCLIENT on PCPREST.CODCLI = PCCLIENT.CODCLI
+    join PCUSUARI on PCPREST.CODUSUR = PCUSUARI.CODUSUR
+    where 
+        PCPREST.DTVENC 
+        between
+        '01/06/2023'
+        and
+        '19/06/2023'
+        and PCPREST.DTPAG is null
+        and PCPREST.CODCLI in ('4274')
+        and PCPREST.CODCOB not in ('DESD')
+        
+order by PCPREST.CODCLI, 
+          PCPREST.DTVENC asc, 
+           PCPREST.DUPLIC, 
+            PCPREST.PREST;
+            
+-- MARK 2 (adicional do campo VALOR_ATUAL, na qual se tem o valor com a soma de 'valor+juros+multa-desconto=vl_atual') 
+-- o campo DIASSEMPAG se refere ao calculo de atraso, onde seu value possui a quantidade de dias em atraso do titulo           
+select distinct
+  PCPREST.CODFILIAL,
+   PCCLIENT.CLIENTE,
+    PCCLIENT.FANTASIA,
+     PCUSUARI.NOME as RCA,
+      to_char(PCPREST.VALOR,'9G999G999G999D99', 'NLS_NUMERIC_CHARACTERS = '',.''') as VALOR,
+       to_char(round(PCPREST.VALOR + ((((PCCOB.TXJUROS / 100) / 30) * PCPREST.VALOR * DIASSEMPAG) + (PCCOB.PERCMULTA / 100) * PCPREST.VALOR) - nvl(PCPREST.VALORDESC,0)),'9G999G999G999D99', 'NLS_NUMERIC_CHARACTERS = '',.''') as VALOR_ATUAL,
+        PCPREST.CODCLI,
+         PCPREST.DTEMISSAO,
+          PCPREST.DUPLIC,
+           PCPREST.PREST,
+            PCHISTCOB.DATA as DTCOB,
+             PCPREST.DTVENC,
+              PCPREST.DTVENCORIG,
+               PCPREST.DTPAG,           
+                case when PCPREST.DTVENC >= SYSDATE then 0
+                 else round(SYSDATE - PCPREST.DTVENC, 0) end as ATRASO,
+                  PCCOB.COBRANCA, 
+                   PCEMPR.NOME as AGENTE,  
+                    PCSTATUSCOBCLI.STATUSCOB,
+                     PCHISTCOB.OBS2,
+                      PCHISTCOB.OBS3
+from
+  (
+    select
+      PCPREST.*,
+      case
+        when ((PCPREST.DTPAG is null)
+          or (PCPREST.DTPAG is not null and ((PCPREST.CODCOB = 'PERD') or (PCPREST.CODCOB = 'CANO')))
+          and (PCPREST.DTVENC < trunc(SYSDATE))) then trunc(SYSDATE) - PCPREST.DTVENC
+        when (PCPREST.DTPAG is not null) and (PCPREST.DTVENC < PCPREST.DTPAG) then PCPREST.DTPAG - PCPREST.DTVENC
+        else 0
+      end as DIASSEMPAG
+from
+ PCPREST 
+  join PCCOB on PCPREST.CODCOB = PCCOB.CODCOB
+  where  PCPREST.CODFILIAL in ('2', '3', '4', '50', '96', '97', '98', '99')
+  and PCPREST.CODCLI in :CODCLI 
+  and PCPREST.DTVENC
+  between 
+  :DATINI
+  and 
+  :DATFIM
+  and ((trunc(SYSDATE) - PCPREST.DTVENC) >= 1)
+  ) PCPREST
+left join PCHISTCOBI on PCHISTCOBI.NUMTRANSVENDA = PCPREST.NUMTRANSVENDA and PCPREST.PREST = PCHISTCOBI.PREST
+left join PCHISTCOB on PCHISTCOB.NUMREGCOB = PCHISTCOBI.NUMREGCOB
+left join PCEMPR on PCHISTCOB.CODFUNC = PCEMPR.MATRICULA 
+left join PCSTATUSCOBCLI on PCPREST.CODSTATUSCOB = PCSTATUSCOBCLI.CODSTATUSCOB 
+join PCCOB on PCPREST.CODCOB = PCCOB.CODCOB
+join PCCLIENT on PCPREST.CODCLI = PCCLIENT.CODCLI
+join PCUSUARI on PCPREST.CODUSUR = PCUSUARI.CODUSUR
+where PCPREST.DTPAG is null
+  and PCPREST.CODCLI in :CODCLI
+  and PCPREST.DTVENC
+  between 
+  :DATINI
+  and 
+  :DATFIM
+  and PCPREST.CODCOB not in ('DESD')
+  and ((trunc(SYSDATE) - PCPREST.DTVENC) >= 1)
+order by
+ PCPREST.CODCLI,
+  PCPREST.DTVENC asc,
+   PCPREST.DUPLIC,
+    PCPREST.PREST;
+
+
+--MARK4
+select *
+from (
+  select
+    PCPREST.CODFILIAL,
+     PCCLIENT.CLIENTE,
+      PCCLIENT.FANTASIA,
+       PCUSUARI.NOME as RCA,
+        to_char(PCPREST.VALOR, '9G999G999G999D99', 'NLS_NUMERIC_CHARACTERS = '',.''') as VALOR,
+         to_char(round(PCPREST.VALOR + ((((PCCOB.TXJUROS / 100) / 30) * PCPREST.VALOR * DIASSEMPAG) + (PCCOB.PERCMULTA / 100) * PCPREST.VALOR) - NVL(PCPREST.VALORdesc,0)), '9G999G999G999D99', 'NLS_NUMERIC_CHARACTERS = '',.''') as VALOR_ATUAL,
+          PCPREST.CODCLI,
+           PCPREST.DTEMISSAO,
+            PCPREST.DUPLIC,
+             PCPREST.PREST,
+             (select max(PCHISTCOB.DATA) from PCHISTCOB) as DTCOB,
+              PCPREST.DTVENC,
+               PCPREST.DTVENCorIG,
+                PCPREST.DTPAG,           
+                 case when PCPREST.DTVENC >= SYSDATE then 0
+                 else round(SYSDATE - PCPREST.DTVENC, 0) end as ATRASO,
+                  PCCOB.COBRANCA, 
+                   PCEMPR.NOME as AGENTE,  
+                    PCSTATUSCOBCLI.STATUSCOB,
+                     (select max(PCHISTCOB.OBS2) from PCPREST) as OBS2,
+                      (select max(PCHISTCOB.OBS3) from PCPREST) as OBS3,
+                        row_number() over (partition by PCPREST.DUPLIC order by PCPREST.DTEMISSAO desc) as rn
+from (
+  select
+      PCPREST.*,
+      case
+        when ((PCPREST.DTPAG is null)
+          or (PCPREST.DTPAG is not null and ((PCPREST.CODCOB = 'PERD') or (PCPREST.CODCOB = 'CANO')))
+          and (PCPREST.DTVENC < trunc(SYSDATE))) then trunc(SYSDATE) - PCPREST.DTVENC
+        when (PCPREST.DTPAG is not null) and (PCPREST.DTVENC < PCPREST.DTPAG) then PCPREST.DTPAG - PCPREST.DTVENC
+        else 0
+      end as DIASSEMPAG
+    from
+      PCPREST 
+      join PCCOB on PCPREST.CODCOB = PCCOB.CODCOB
+    where
+      PCPREST.CODFILIAL in ('2', '3', '4', '50', '96', '97', '98', '99')
+      and PCPREST.CODCLI in :CODCLI 
+      and PCPREST.DTVENC between :DATINI and :DATFIM
+      and ((trunc(SYSDATE) - PCPREST.DTVENC) >= 1)
+  ) PCPREST
+  left join PCHISTCOBI on PCHISTCOBI.NUMTRANSVENDA = PCPREST.NUMTRANSVENDA and PCPREST.PREST = PCHISTCOBI.PREST
+  left join PCHISTCOB on PCHISTCOB.NUMREGCOB = PCHISTCOBI.NUMREGCOB
+  left join PCEMPR on PCHISTCOB.CODFUNC = PCEMPR.MATRICULA 
+  left join PCSTATUSCOBCLI on PCPREST.CODSTATUSCOB = PCSTATUSCOBCLI.CODSTATUSCOB 
+  join PCCOB on PCPREST.CODCOB = PCCOB.CODCOB
+  join PCCLIENT on PCPREST.CODCLI = PCCLIENT.CODCLI
+  join PCUSUARI on PCPREST.CODUSUR = PCUSUARI.CODUSUR
+  where
+    PCPREST.DTPAG is null
+    and PCPREST.CODCLI in :CODCLI
+    and PCPREST.DTVENC between :DATINI and :DATFIM
+    and PCPREST.CODCOB not in ('DESD')
+    and ((trunc(SYSDATE) - PCPREST.DTVENC) >= 1)
+) subquery
+where subquery.rn = 1
+order by
+  subquery.CODCLI,
+   subquery.DTVENC asc,
+    subquery.DUPLIC,
+     subquery.PREST;
+
+
+--MARK 5
+select *
+from
+(
+  select
+     PCPREST.CODFILIAL,
+      PCCLIENT.CLIENTE,
+       PCCLIENT.FANTASIA,
+        PCUSUARI.NOME as RCA,
+         PCPREST.VALOR as VALOR,
+          round(PCPREST.VALOR + ((((PCCOB.TXJUROS / 100) / 30) * PCPREST.VALOR * DIASSEMPAG) + (PCCOB.PERCMULTA / 100) * PCPREST.VALOR) - NVL(PCPREST.VALORdesc, 0))as VALOR_ATUAL,
+           PCPREST.CODCLI,
+            PCPREST.DTEMISSAO,
+             PCPREST.DUPLIC,
+              PCPREST.PREST,
+               PCHISTCOB.DATA as DTCOB,
+                PCPREST.DTVENC,
+                 PCPREST.DTVENCorIG,
+                  PCPREST.DTPAG,
+                  case when PCPREST.DTVENC >= SYSDATE then 0 else round(SYSDATE - PCPREST.DTVENC, 0) end as ATRASO,
+                   PCCOB.COBRANCA,
+                    PCEMPR.NOME as AGENTE,
+                     PCSTATUSCOBCLI.STATUSCOB,
+                      PCHISTCOB.OBS2,
+                       PCHISTCOB.OBS3,
+                        row_number() over (partition by PCPREST.DUPLIC, PCPREST.PREST order by PCHISTCOB.DATA desc nullS last) as RN
+from
+  (
+  select
+      PCPREST.*,
+      case
+        when ((PCPREST.DTPAG is null or (PCPREST.DTPAG is not null and ((PCPREST.CODCOB = 'PERD') or (PCPREST.CODCOB = 'CANO'))) and (PCPREST.DTVENC < trunc(SYSDATE)))) then trunc(SYSDATE) - PCPREST.DTVENC
+        when (PCPREST.DTPAG is not null) and (PCPREST.DTVENC < PCPREST.DTPAG) then PCPREST.DTPAG - PCPREST.DTVENC
+        else 0
+      end as DIASSEMPAG
+    from
+      PCPREST
+      join PCCOB on PCPREST.CODCOB = PCCOB.CODCOB
+    where
+      PCPREST.CODFILIAL in ('2', '3', '4', '50', '96', '97', '98', '99')
+      and PCPREST.CODCLI = :CODCLI
+      and PCPREST.DTVENC between :DATINI and :DATFIM
+      and ((trunc(SYSDATE) - PCPREST.DTVENC) >= 1)
+      
+  ) PCPREST
+  left join PCHISTCOBI on PCHISTCOBI.NUMTRANSVENDA = PCPREST.NUMTRANSVENDA and PCPREST.PREST = PCHISTCOBI.PREST
+  left join PCHISTCOB on PCHISTCOB.NUMREGCOB = PCHISTCOBI.NUMREGCOB
+  left join PCEMPR on PCHISTCOB.CODFUNC = PCEMPR.MATRICULA
+  left join PCSTATUSCOBCLI on PCPREST.CODSTATUSCOB = PCSTATUSCOBCLI.CODSTATUSCOB
+  join PCCOB on PCPREST.CODCOB = PCCOB.CODCOB
+  join PCCLIENT on PCPREST.CODCLI = PCCLIENT.CODCLI
+  join PCUSUARI on PCPREST.CODUSUR = PCUSUARI.CODUSUR
+  where
+    PCPREST.DTPAG is null
+    and PCPREST.CODCLI = :CODCLI
+    and PCPREST.DTVENC between :DATINI and :DATFIM
+    and PCPREST.CODCOB not in ('DESD')
+    and ((trunc(SYSDATE) - PCPREST.DTVENC) >= 1)
+ --  and PCPREST.DUPLIC = '44199'
+    and PCHISTCOB.DATA is not null
+)
+where RN = 1
+order by
+  DUPLIC,
+   PREST,
+    DTCOB desc nullS last,
+     CODCLI,
+      DTVENC asc
