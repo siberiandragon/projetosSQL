@@ -16,3 +16,29 @@ select
 from PCPEDC
 left join PCCONTATO on PCPEDC.CODCONTATO = PCCONTATO.CODCONTATO
 where NUMNOTA='870791';
+
+
+
+select 
+  case 
+    when  PCPEDC.CODCONTATO  is null then 
+      'NF-e: ' || PCPEDC.NUMNOTA || ': NÃO POSSUI AGENCIADOR'
+    when  (select case when count(*) = 0 then 600 else count(*) end as Result 
+      from PCPEDC where 
+        NUMNOTA = ('') 
+     or NUMPED = ('1114001911')
+     and PCPEDC.CODCONTATO is not null and PCPEDC.NUMNOTA is not null)
+     = 600 then
+      'N° NOTA INEXISTENTE'
+    when NUMNOTA = 0 then 
+      'N° PADRÃO'
+    else
+      'NF-e: ' || PCPEDC.NUMNOTA || ' | COD.AGC: ' || PCPEDC.CODCONTATO || ' | AGC: ' || PCCONTATO.NOMECONTATO
+  end as Resultado
+from PCPEDC
+left join PCCONTATO on PCPEDC.CODCONTATO = PCCONTATO.CODCONTATO
+where  
+NUMNOTA = ('')
+or NUMPED = ('1114001911')
+fetch first 1 rows only 
+;

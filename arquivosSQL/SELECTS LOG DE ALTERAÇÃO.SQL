@@ -6,3 +6,7 @@ from (
 )
 where rownum < 1000
 order by DATA desc;
+
+
+select * from PCLOGALTERACAODADOS
+where CODROTINA ='605'
