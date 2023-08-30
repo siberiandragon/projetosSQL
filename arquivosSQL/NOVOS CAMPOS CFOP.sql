@@ -1,0 +1,188 @@
+select * from PCMOV 
+where  NUMNOTA = '87210';
+
+select CODPROD, DESCRICAO from PCPRODUT
+where CODPROD in ('3540','3549','3551','3555')
+
+;
+
+--PERPIS, PERCOFINS, BASEICMS, PERCICM
+
+select   
+       (S.VLPIS * M.QT)  as VLPIS,
+       (S.VLCOFINS * M.QT) as VLCOFINS, 
+        M.BASEICMS as BSEICMS,
+        ((M.BASEICMS * (M.PERCICM /100)) * M.QT)as VLICMS,
+       (M.VLBASEIPI * M.QT) as BASEIPI,
+        (M.VLIPI * M.QT) as VLIPI 
+from PCMOV M
+join VW_MANUT_NF_SAID S on M.NUMNOTA = S.NUMNOTA and M.CODPROD = S.CODPROD
+where M.NUMNOTA ='89019' and M.CODPROD ='5477'  ;
+
+select * from PCMOV
+where NUMNOTA ='89019';
+
+
+select 
+    M.CODFILIAL,
+    M.DTMOV as DTENT,
+    M.NUMNOTA as NOTA_ENT,
+    null as NOTA_SAID,
+    M.CODOPER,
+    M.CODPROD,
+    T.DESCRICAO,
+    M.CODFISCAL,
+    M.CODCLI,
+    C.CLIENTE,
+    null as CFOP_SAID,
+    null as TIPO,
+    null as VENDA,
+    null as VLPIS_SAID,
+    null as VLCOFINS_SAID,
+    null as BASEICM_SAID,
+    null as VLICMS_SAID,
+    null as BASEIPI_SAID,
+    null as VLIPI_SAID
+from PCMOV M
+join PCCLIENT C on M.CODCLI = C.CODCLI
+join PCPRODUT T on M.CODPROD = T.CODPROD
+join VW_DEVOL_AVUL D on M.NUMNOTA = D.NOTA_ENT and M.CODFILIAL = D.FILIAL
+where D.DTENT between '01/05/2023' and '23/08/2023'
+and M.CODFILIAL in('2')
+and M.CODOPER in ('ED')
+and M.NUMNOTA = '2280'
+
+union all
+
+select 
+    M.CODFILIAL,
+    M.DTMOV as DTENT,
+    M.NUMNOTA as NOTA_ENT,
+    P.NUMNOTA as NOTA_SAID,
+    M.CODOPER,
+    M.CODPROD,
+    T.DESCRICAO,
+    M.CODFISCAL,
+    M.CODCLI,
+    C.CLIENTE,
+    I.CODFISCAL as CFOP_SAID,
+    P.CONDVENDA as TIPO,
+    decode(nvl(P.CONDVENDA, 0),0, 'NDA',1, 'VENDA NORMAL',5, 'BONIFICACAO',7, 'NOTA MÃE',8, 'NOTA FILHA',9, 'DEMONSTRAÇÃO',10, 'TRANSFERÊNCIA') as VENDA,
+    (S.VLPIS * M.QT)  as VLPIS_SAID,
+    (S.VLCOFINS * M.QT) as VLCOFINS_SAID, 
+     M.BASEICMS as BASEICM_SAID,
+    ((M.BASEICMS * (M.PERCICM /100)) * M.QT)as VLICMS_SAID,
+    (M.VLBASEIPI * M.QT) as BASEIPI_SAID,
+    (M.VLIPI * M.QT) as VLIPI_SAID
+from PCMOV M
+join PCCLIENT C on M.CODCLI = C.CODCLI
+join PCPRODUT T on M.CODPROD = T.CODPROD
+join VW_DEVOL_VENDA D on M.NUMNOTA = D.NOTA_ENT and M.CODFILIAL = D.FILIAL
+join PCPEDC P on D.NOTA_SAID = P.NUMNOTA
+join PCPEDI I on P.NUMPED = I.NUMPED and M.CODPROD = I.CODPROD
+join VW_MANUT_NF_SAID S on P.NUMNOTA = S.NUMNOTA and M.CODPROD = S.CODPROD
+where D.DTENT between '01/05/2023' and '23/08/2023'
+and M.CODFILIAL in ('2')
+and M.CODOPER in ('ED')
+and M.NUMNOTA ='2280'
+order by NOTA_ENT; 
+
+select * from VW_DEVOL_VENDA
+where NOTA_SAID = '89019'
+;
+
+--Mark 3 ( adição de impostos de saida e entrada)
+select 
+    M.CODFILIAL,
+    M.DTMOV as DTENT,
+    M.NUMNOTA as NOTA_ENT,
+    null as NOTA_SAID,
+    M.CODOPER,
+    M.CODPROD,
+    T.DESCRICAO,
+    M.CODFISCAL,
+    M.CODCLI,
+    C.CLIENTE,
+    null as CFOP_SAID,
+    null as TIPO,
+    null as VENDA,
+    null as VLPIS_SAID,
+    null as VLCOFINS_SAID,
+    null as BASEICM_SAID,
+    null as VLICMS_SAID,
+    null as BASEIPI_SAID,
+    null as VLIPI_SAID,
+    (E.VLCREDPIS * M.QT) as VLPIS_ENT,
+    (E.VLCREDCOFinS * M.QT) as VLCOFINS_ENT, 
+    M.BASEICMS as BASEICM_ENT,
+    ((M.BASEICMS * (M.PERCICM /100)) * M.QT) as VLICMS_ENT,
+    (M.VLBASEIPI * M.QT) as BASEIPI_ENT,
+    (M.VLIPI * M.QT) as VLIPI_ENT,
+    H.CHAVENFE as CHAVE_ENT,
+    null as CHAVE_SAID
+from PCMOV M
+join PCCLIENT C on M.CODCLI = C.CODCLI
+join PCPRODUT T on M.CODPROD = T.CODPROD
+join VW_MANUT_NF_ENT E on M.NUMNOTA = E.NUMNOTA and T.CODPROD = E.CODPROD
+join PCNFENT  H on M.NUMNOTA = H.NUMNOTA
+join VW_DEVOL_AVUL D on M.NUMNOTA = D.NOTA_ENT and M.CODFILIAL = D.FILIAL
+where D.DTENT between '01/05/2023' and '23/08/2023'
+and M.CODFILIAL in ('2')
+and M.CODOPER in ('ED')
+and M.NUMNOTA = '2113'
+and H.CHAVENFE is not null
+and M.DTCANCEL is null
+
+union all
+
+
+select 
+    M.CODFILIAL,
+    M.DTMOV AS DTENT,
+    M.NUMNOTA AS NOTA_ENT,
+    P.NUMNOTA AS NOTA_SAID,
+    M.CODOPER,
+    M.CODPROD,
+    T.DESCRICAO,
+    M.CODFISCAL,
+    M.CODCLI,
+    C.CLIENTE,
+    I.CODFISCAL as CFOP_SAID,
+    P.CONDVENDA as TIPO,
+    decode(NVL(P.CONDVENDA, 0), 0, 'NDA', 1, 'VENDA NORMAL', 5, 'BonIFICACAO', 7, 'NOTA MÃE', 8, 'NOTA FILHA', 9, 'DEMONSTRAÇÃO', 10, 'TRANSFERÊNCIA') as VENDA,
+     (S.VLPIS * M.QT) as VLPIS_SAID,
+    (S.VLCOFINS * M.QT) as VLCOFINS_SAID, 
+    M.BASEICMS as BASEICM_SAID,
+    ((M.BASEICMS * (M.PERCICM /100)) * M.QT) as VLICMS_SAID,
+    (M.VLBASEIPI * M.QT) as BASEIPI_SAID,
+    (M.VLIPI * M.QT) as VLIPI_SAID,
+    (E.VLCREDPIS * M.QT) as VLPIS_ENT,
+    (E.VLCREDCOFinS * M.QT) as VLCOFINS_ENT, 
+    M.BASEICMS as BASEICM_ENT,
+    ((M.BASEICMS * (M.PERCICM /100)) * M.QT) as VLICMS_ENT,
+    (M.VLBASEIPI * M.QT) as BASEIPI_ENT,
+    (M.VLIPI * M.QT) as VLIPI_ENT,
+    H.CHAVENFE as CHAVE_ENT,
+    C.CHAVENFE as CHAVE_SAID
+    
+from PCMOV M
+join PCCLIENT C on M.CODCLI = C.CODCLI
+join PCPRODUT T on M.CODPROD = T.CODPROD
+join VW_DEVOL_VENDA D on M.NUMNOTA = D.NOTA_ENT and M.CODFILIAL = D.FILIAL
+join PCPEDC P on D.NOTA_SAID = P.NUMNOTA
+join PCPEDI I on P.NUMPED = I.NUMPED and M.CODPROD = I.CODPROD
+join VW_MANUT_NF_SAID S on P.NUMNOTA = S.NUMNOTA and M.CODPROD = S.CODPROD
+join VW_MANUT_NF_ENT E on M.NUMNOTA = E.NUMNOTA and I.CODPROD = E.CODPROD
+join PCNFENT  H on M.NUMNOTA = H.NUMNOTA
+join PCNFSAID C on P.NUMNOTA = C.NUMNOTA 
+where D.DTENT between '01/05/2023' and '23/08/2023'
+and M.CODFILIAL in ('2')
+and M.CODOPER in ('ED')
+and M.NUMNOTA = '2113'
+and H.CHAVENFE is not null
+and M.DTCANCEL is null
+order by DESCRICAO;
+
+
+select * from PCMOV where NUMNOTA ='52'
+
