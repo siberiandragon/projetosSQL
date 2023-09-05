@@ -1,33 +1,35 @@
-select PCPRODUT.MODULO, 
-       PCPRODUT.RUA, 
-       PCPRODUT.NUMERO, 
-       PCPRODUT.APTO,
-       PCPRODUT.CODPROD,
-       PCPRODUT.DV,
-       PCPRODUT.DESCRICAO,
-       PCPRODUT.CODAUXILIAR,
-       PCPRODUT.CODFAB, 
-       PCPRODUT.EMBALAGEM, 
-       PCPRODUT.PONTOREPOSICAO,
-       PCPRODUT.PONTOREPOSICAOCX,
-       PCPRODUT.LASTROPAL,
-       PCPRODUT.ALTURAPAL,
-       PCPRODUT.QTTOTPAL,
-       PCPRODUT.CAPACIDADEPICKING,
-       PCPRODUT.UNIDADE,
-       CASE 
-         WHEN E.CODFILIAL = 2
-         THEN PCPRODUT.DESCRICAO2
-         WHEN E.CODFILIAL = 3 
-         THEN PCPRODUT.DESCRICAO3
-         WHEN E.CODFILIAL = 4 
-         THEN PCPRODUT.DESCRICAO4
-         ELSE PCPRODUT.DESCRICAO1
+select E.CODFILIAL,
+       P.MODULO, 
+       P.RUA, 
+       P.NUMERO, 
+       P.APTO,
+       P.CODPROD,
+       P.DV,
+       P.DESCRICAO,
+       P.CODAUXILIAR,
+       P.CODFAB, 
+       P.EMBALAGEM, 
+       P.PONTOREPOSICAO,
+       P.PONTOREPOSICAOCX,
+       P.LASTROPAL,
+       P.ALTURAPAL,
+       P.QTTOTPAL,
+       P.CAPACIDADEPICKING,
+       P.UNIDADE,
+        case 
+          when E.CODFILIAL ='2'
+          then 'OLI ' || E.MODULO || '.' || E.RUA ||  '.' || E.APTO ||  '.' || E.NUMERO 
+          when E.CODFILIAL ='3'
+          then 'REC ' || E.MODULO || '.' || E.RUA ||  '.' || E.APTO ||  '.' || E.NUMERO 
+          when E.CODFILIAL ='4'
+          then 'NAT ' || E.MODULO || '.' || E.RUA ||  '.' || E.APTO ||  '.' || E.NUMERO 
+          else 'NDA'
+         
 END ENDERECO
        
-from   PCPRODUT
-JOIN PCEST E ON PCPRODUT.CODPROD = E.CODPROD
+from   PCPRODUT P
+join PCEST E on P.CODPROD = E.CODPROD
 where 1 = 1
- and PCPRODUT.CODPROD = '804' 
- and E.CODFILIAL ='2'
- order by PCPRODUT.CODPROD
+ and P.CODPROD = '804'
+ and E.CODFILIAL = '4'
+ order by P.CODPROD

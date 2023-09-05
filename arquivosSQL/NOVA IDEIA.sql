@@ -1,0 +1,42 @@
+select distinct 
+    M.CODFILIAL,
+    M.DTMOV AS DTENT,
+    M.NUMNOTA AS NOTA_ENT,
+    M.CODOPER,
+    M.CODPROD,
+    T.DESCRICAO,
+    M.QT,
+    M.CODFISCAL,
+    M.CODCLI,
+    C.CLIENTE,
+    (E.VLCREDPIS * M.QT) as VLPIS_ENT,
+    (E.VLCREDCOFINS * M.QT) as VLCOFINS_ENT, 
+    M.BASEICMS as BASEICM_ENT,
+    ((M.BASEICMS * (M.PERCICM /100)) * M.QT) as VLICMS_ENT,
+    (M.VLBASEIPI * M.QT) as BASEIPI_ENT,
+    (M.VLIPI * M.QT) as VLIPI_ENT,
+     A.CHAVENFE as CHAVENFE
+    
+from VW_MANUT_NF_ENT E
+join PCMOV M on E.NUMNOTA = M.NUMNOTA and E.CODPROD = M.CODPROD and E.CODFILIAL = M.CODFILIAL
+join PCNFENT A on E.NUMNOTA = A.NUMNOTA and E.NUMTRANSENT = A.NUMTRANSENT 
+join PCCLIENT C on M.CODCLI = C.CODCLI
+join PCPRODUT T on M.CODPROD = T.CODPROD
+where 0=0
+and M.DTMOV between '01/02/2023' and '23/09/2023'
+and M.CODFILIAL in ('2')
+and M.NUMNOTA = '1'
+and M.DTCANCEL is null
+and M.STATUS <> 'B'
+and A.ESPECIE = 'NF'
+and A.DTCANCEL is null
+order by CODCLI;
+
+select * from PCNFENT where NUMNOTA ='1' and DTCANCEL is null and ESPECIE = 'NF' order by NUMTRANSENT;
+
+select * from PCMOV where NUMNOTA ='1' and STATUS <> 'B'  order by NUMTRANSENT;
+
+;
+
+
+select * from VW_MANUT_NF_ENT where NUMNOTA ='1' and CODFILIAL = '2'
