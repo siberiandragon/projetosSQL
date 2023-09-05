@@ -1,0 +1,19 @@
+select CGCENT from PCCLIENT WHERE CODCLI ='3061' ;
+
+select * from PCMOV where NUMNOTA ='89274';
+
+select * from PCUSUARI;
+
+select * from PCPEDC where NUMNOTA ='52388';
+
+select CODCLI,CGCENT from PCCLIENT where length(CGCENT) = 18;
+
+select * from PCCLIENT where CODCLI =1654;
+
+
+UPDATE PCCLIENT
+SET CGCENT = REGEXP_REPLACE(CGCENT, '[^0-9]')
+WHERE length(CGCENT) = 18;
+
+
+SELECT * FROM PCPRODUT WHERE CODPROD ='804'
