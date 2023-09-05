@@ -12,6 +12,6 @@
 <div
 
   
-  [ <img src="https://raw.githubusercontent.com/khrome/ansi-gif/master/Samples/nyan.gif" style="display: flex; flex-direction: column; align: center; justify-content: center; height: 95vh;">]([https://youtu.be/-y6a6I3-zYE?t=25](https://youtu.be/QH2-TGUlwu4?si=Rux2I6YHiWOCeVio&t=44)</h3>
+  [ <img src="https://raw.githubusercontent.com/khrome/ansi-gif/master/Samples/nyan.gif" style="display: flex; flex-direction: column; align: center; justify-content: center; height: 95vh;">](https://youtu.be/QH2-TGUlwu4?si=Rux2I6YHiWOCeVio&t=44)</h3>
 
 </div>
