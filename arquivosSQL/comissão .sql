@@ -1137,59 +1137,59 @@ order by
   to_char(nvl(PCUSUARI.VLVENDAPREV,0), '9G999G999G999D99', 'NLS_NUMERIC_CHARACTERS = '',.''') as META,
   to_char(PCNFENT.VLTOTAL, '9G999G999G999D99', 'NLS_NUMERIC_CHARACTERS = '',.''') as TOTAL_DEVL,
   to_char(TOTAL_PCPEDC.VLATEND, '9G999G999G999D99', 'NLS_NUMERIC_CHARACTERS = '',.''') as TOTAL,
-  (select 
-    to_char((sum(S.FATURAMENTO - S.CUSTO) / sum(S.FATURAMENTO)) * 100,'9G999G999G999D99','NLS_NUMERIC_CHARACTERS = '',.') as MARG 
-from  (
-    select
+  (select to_char((sum(S.FATURAMENTO - S.CUSTO) / sum(S.FATURAMENTO)) * 100,'9G999G999G999D99','NLS_NUMERIC_CHARACTERS = '',.') as MARG 
+    from  
+       ( 
+        select
         F.CODUSUR,
         sum((F.CUSTOULTENT * F.QT) + (((F.PERCOM/100) * F.PUNIT) * F.QT) + (((F.CODICMTAB/100) * F.PUNIT) * F.QT)) as CUSTO,
         sum((F.PUNIT * F.QT) + (nvl(F.VLFRETE, 0) * F.QT) + (nvl(F.VLOUTROS, 0) * F.QT)) as FATURAMENTO,
         sum((F.PUNIT * F.QT) + (nvl(F.VLFRETE, 0) * F.QT) + (nvl(F.VLOUTROS, 0) * F.QT)
         - (F.CUSTOULTENT * F.QT) - (((F.PERCOM/100) * F.PUNIT) * F.QT) - (((F.CODICMTAB/100) * F.PUNIT) * F.QT)) as REC
-    from
-        PCMOV F
-        left join PCCLIENT C on C.CODCLI = F.CODCLI
-        left join PCUSUARI S on S.CODUSUR = F.CODUSUR
-        left join PCEMPR   P on S.CODUSUR = P.CODUSUR
-        left join PCROTINA R on PCEMPR.MATRICULA  = PCEMPR.MATRICULA 
-    where
-        F.CODOPER in ('S')
-        and F.CODFISCAL not in (5117, 6117)
-        and F.DTCANCEL is null
-        and (F.CODDEVOL not in (43) or F.CODDEVOL is null)
-        and F.CODUSUR = S.CODUSUR
-        and P.MATRICULA = '35'
-        and R.CODIGO = '8035'
-        and F.CODFILIAL in ('2','3','4')
-        and F.DTMOV between ('01/08/2023') and ('17/08/2023')
-    group by
-        F.CODUSUR
+        from
+            PCMOV F
+          left join PCCLIENT C on C.CODCLI = F.CODCLI
+          left join PCUSUARI S on S.CODUSUR = F.CODUSUR
+          left join PCEMPR   P on S.CODUSUR = P.CODUSUR
+          left join PCROTINA R on PCEMPR.MATRICULA = PCEMPR.MATRICULA 
+            where
+            F.CODOPER in ('S')
+            and F.CODFISCAL not in (5117, 6117)
+            and F.DTCANCEL is null
+            and (F.CODDEVOL not in (43) or F.CODDEVOL is null)
+            and F.CODUSUR = S.CODUSUR
+            and P.MATRICULA = 35
+            and R.CODIGO = '8035'
+            and F.CODFILIAL in ('2','3','4')
+            and F.DTMOV between ('01/08/2023') and ('31/08/2023')
+            group by
+            F.CODUSUR
 
-    union all
+union all
 
-    select
-        F.CODUSUR,
-        sum(-((F.CUSTOULTENT * F.QT) + (((F.PERCOM/100) * F.PUNIT) * F.QT) + (((F.CODICMTAB/100) * F.PUNIT) * F.QT))) as CUSTO,
-        sum(-((F.PUNIT * F.QT) + (nvl(F.VLFRETE, 0) * F.QT) + (nvl(F.VLOUTROS, 0) * F.QT))) as FATURAMENTO,
-        sum(-((F.PUNIT * F.QT) + (nvl(F.VLFRETE, 0) * F.QT) + (nvl(F.VLOUTROS, 0) * F.QT))
-        - ((F.CUSTOULTENT * F.QT) + (((F.PERCOM/100) * F.PUNIT) * F.QT) + (((F.CODICMTAB/100) * F.PUNIT) * F.QT))) as REC
-    from
+select
+       F.CODUSUR,
+       sum(-((F.CUSTOULTENT * F.QT) + (((F.PERCOM/100) * F.PUNIT) * F.QT) + (((F.CODICMTAB/100) * F.PUNIT) * F.QT))) as CUSTO,
+       sum(-((F.PUNIT * F.QT) + (nvl(F.VLFRETE, 0) * F.QT) + (nvl(F.VLOUTROS, 0) * F.QT))) as FATURAMENTO,
+       sum(-((F.PUNIT * F.QT) + (nvl(F.VLFRETE, 0) * F.QT) + (nvl(F.VLOUTROS, 0) * F.QT))
+       - ((F.CUSTOULTENT * F.QT) + (((F.PERCOM/100) * F.PUNIT) * F.QT) + (((F.CODICMTAB/100) * F.PUNIT) * F.QT))) as REC
+       from
         PCMOV F
-        left join PCCLIENT C on C.CODCLI = F.CODCLI
-        left join PCUSUARI S on S.CODUSUR = F.CODUSUR
-        left join PCEMPR   P on S.CODUSUR = P.CODUSUR
-        left join PCROTINA R on PCEMPR.MATRICULA  = PCEMPR.MATRICULA 
-    where
+      left join PCCLIENT C on C.CODCLI = F.CODCLI
+      left join PCUSUARI S on S.CODUSUR = F.CODUSUR
+      left join PCEMPR   P on S.CODUSUR = P.CODUSUR
+      left join PCROTINA R on PCEMPR.MATRICULA  = PCEMPR.MATRICULA 
+        where
         F.CODOPER in ('ED')
         and F.CODFISCAL not in (5117, 6117)
         and F.DTCANCEL is null
         and (F.CODDEVOL not in (43) or F.CODDEVOL is null)
         and F.CODUSUR = S.CODUSUR
-        and P.MATRICULA = '35'
+        and P.MATRICULA = 35
         and R.CODIGO = '8035'
         and F.CODFILIAL in ('2','3','4')
-        and F.DTMOV between ('01/08/2023') and ('17/08/2023')
-    group by
+        and F.DTMOV between ('01/08/2023') and ('31/08/2023')
+        group by
         F.CODUSUR
 ) S
 group by
@@ -1211,62 +1211,60 @@ join
       sum(PCPEDC.VLATEND) as VLATEND
     from
       PCPEDC
-    where
+      where
       PCPEDC.POSICAO = 'F'
-      and PCPEDC.DTFAT
-      between '01/08/2023' and '17/08/2023'
+      and PCPEDC.DTFAT between ('01/08/2023') and ('31/08/2023')
       and PCPEDC.CODFILIAL = PCPEDC.CODFILIAL 
       and PCPEDC.CODUSUR = PCPEDC.CODUSUR
-    group by
+      group by
       PCPEDC.CODUSUR
   ) TOTAL_PCPEDC on PCPEDC.CODUSUR = TOTAL_PCPEDC.CODUSUR
 left join
   (
-select 
+    select 
       PCNFENT.CODUSURDEVOL,
       sum(PCNFENT.VLTOTAL) as VLTOTAL
-from 
+      from 
     PCNFENT
-left join PCESTCOM on PCNFENT.NUMTRANSENT = PCESTCOM.NUMTRANSENT
-left join PCTABDEV on PCNFENT.CODDEVOL = PCTABDEV.CODDEVOL
-left join PCCLIENT on PCNFENT.CODFORNEC = PCCLIENT.CODCLI
-left join PCEMPR FUNC on PCNFENT.CODFUNCLANC = FUNC.MATRICULA
-left join PCNFSAID on PCESTCOM.NUMTRANSVENDA = PCNFSAID.NUMTRANSVENDA
-left join PCDEVCONSUM on PCNFENT.NUMTRANSENT = PCDEVCONSUM.NUMTRANSENT
-left join PCUSUARI S on S.CODUSUR = PCNFENT.CODUSURDEVOL
-left join PCEMPR   P on S.CODUSUR = P.CODUSUR
-left join PCROTINA R on P.MATRICULA  = P.MATRICULA 
-
-where  
-    PCNFENT.DTENT between '01/08/2023' and '17/08/2023'
+  left join PCESTCOM on PCNFENT.NUMTRANSENT = PCESTCOM.NUMTRANSENT
+  left join PCTABDEV on PCNFENT.CODDEVOL = PCTABDEV.CODDEVOL
+  left join PCCLIENT on PCNFENT.CODFORNEC = PCCLIENT.CODCLI
+  left join PCEMPR FUNC on PCNFENT.CODFUNCLANC = FUNC.MATRICULA
+  left join PCNFSAID on PCESTCOM.NUMTRANSVENDA = PCNFSAID.NUMTRANSVENDA
+  left join PCDEVCONSUM on PCNFENT.NUMTRANSENT = PCDEVCONSUM.NUMTRANSENT
+  left join PCUSUARI S on S.CODUSUR = PCNFENT.CODUSURDEVOL
+  left join PCEMPR   P on S.CODUSUR = P.CODUSUR
+  left join PCROTINA R on P.MATRICULA  = P.MATRICULA 
+    where  0=0
+    and PCNFENT.DTENT between ('01/08/2023') and ('31/08/2023')
     and PCNFENT.TIPODESCARGA in ('6','7','T') 
     and nvl(PCNFENT.OBS, 'X') <> 'NF CANCELADA'
     and PCNFENT.CODFISCAL in ('131','132','231','232','199','299') 
     and ((nvl(PCNFSAID.CONDVENDA, 0) in ('1', '7') and PCESTCOM.NUMTRANSVENDA = PCNFSAID.NUMTRANSVENDA)
-         or (PCNFENT.VLTOTGER is null and PCNFENT.CODUSURDEVOL = '1039'))
+         or (PCNFENT.VLTOTGER is null and PCNFENT.CODUSURDEVOL = S.CODUSUR))
     and PCNFENT.CODDEVOL in (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,47,52,55)
     and PCNFENT.CODUSURDEVOL = S.CODUSUR
-    and P.MATRICULA = '35'
+    and P.MATRICULA = 35
     and R.CODIGO = '8035'
     and PCNFENT.CODFILIALNF in ('2','3','4')
-group by 
-PCNFENT.CODUSURDEVOL                     
+    group by 
+    PCNFENT.CODUSURDEVOL                     
   ) PCNFENT on PCPEDC.CODUSUR = PCNFENT.CODUSURDEVOL
-    where
+      where
       PCPEDC.POSICAO = 'F'
       and PCPEDC.DTFAT
-      between '01/08/2023' and '17/08/2023'
+      between ('01/08/2023') and ('31/08/2023')
       and PCPEDC.CODFILIAL in ('2','3','4')
       and PCPEDC.CODUSUR = PCUSUARI.CODUSUR
-      and PCEMPR.MATRICULA = '35'
+      and PCEMPR.MATRICULA = 35
       and PCROTINA.CODIGO = '8035'
       and PCNFSAID.TIPOMOVGARANTIA is null
       and PCNFSAID.CONDVENDA in ('1','7')
-group by
-  PCPEDC.CODUSUR,
-  PCUSUARI.NOME,
-  TOTAL_PCPEDC.VLATEND,
-  PCNFENT.VLTOTAL,
-  PCUSUARI.VLVENDAPREV
+      group by
+      PCPEDC.CODUSUR,
+      PCUSUARI.NOME,
+      TOTAL_PCPEDC.VLATEND,
+      PCNFENT.VLTOTAL,
+      PCUSUARI.VLVENDAPREV
 order by
-  PCPEDC.CODUSUR asc;
+PCPEDC.CODUSUR asc;
