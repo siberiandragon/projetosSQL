@@ -20,8 +20,14 @@ select CODCONTAB from PCCLIENT WHERE CODCLI = '22852'
 select * from PCNFSAID where NUMTRANSVENDA ='160662';
 
 
+select * from PCNFENT where NUMNOTA ='118589';
+
+
 SELECT * FROM PCCRECLI WHERE CODCLI ='21755';
 
+
+select * from PCMOV where NUMNOTA ='118589'
+;
 --
 
 
