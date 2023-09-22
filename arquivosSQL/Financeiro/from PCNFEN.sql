@@ -14,6 +14,31 @@ where 0=0
 and L.RECNUM ='10246'
 ;
 
+select G.GRUPO,
+       C.CODCONTA,
+       regexp_replace(C.CONTA, '\([^)]*\)', '') as CONTA,
+       C.TIPO,
+       C.CONTACONTABIL,
+       M.CODCONTA_PC,
+       M.NOME_CONTA,
+       case 
+       when C.CODCONTA = '100012'
+       then 'PAGAMENTO DE ' || regexp_replace(C.CONTA, '\([^)]*\)', '') || to_char(trunc(L.DTCOMPETENCIA, 'MM'), 'MM/YYYY')
+       when C.CODCONTA in('100010','4010003')
+       then 'PAGAMENTO DE ' || L.NUMNOTA || ' | ' || F.FORNECEDOR
+       when C.CODCONTA in('100001','100022')
+       then 'PAGAMENTO DE ' || L.NUMNOTA || ' | ' || L.PREST || ' | ' || F.FORNECEDOR
+       when C.CODCONTA = '100015'
+       then 'PAGAMENTO DE ' || regexp_replace(C.CONTA, '\([^)]*\)', '') || to_char(trunc(L.DTCOMPETENCIA, 'MM'), 'MM/YYYY')
+       
+       else 'NDd'
+       end HISTORICO
+ from PCLANC L
+ left join PCCONTA C on L.CODCONTA = C.CODCONTA
+ left join PCGRUPO G on C.GRUPOCONTA = G.CODGRUPO
+ left join PCMODELOPC M on C.CONTACONTABIL = M.CODREDUZIDO_PC
+ left join PCFORNEC F on L.CODFORNEC = F.CODFORNEC
+ where L.RECNUM ='67188';
 
 select CODCONTAB from PCCLIENT WHERE CODCLI = '22852'
 ;
