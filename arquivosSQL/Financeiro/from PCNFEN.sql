@@ -30,7 +30,76 @@ select G.GRUPO,
        then 'PAGAMENTO DE ' || L.NUMNOTA || ' | ' || L.PREST || ' | ' || F.FORNECEDOR
        when C.CODCONTA = '100015'
        then 'PAGAMENTO DE ' || regexp_replace(C.CONTA, '\([^)]*\)', '') || to_char(trunc(L.DTCOMPETENCIA, 'MM'), 'MM/YYYY')
-       
+       when C.CODCONTA = '100020'
+       then 'DEVOLUÇÂO REF NF ' || L.NUMNOTA || ' | ' || F.FORNECEDOR
+       when C.CODCONTA = '100002'
+       then 'PAGAMENTO DE NF ' || L.NUMNOTA || '|'  || L.PREST ||' | ' || F.FORNECEDOR     
+       when C.CODCONTA = '100016'
+       then 'PAGAMENTO DE ICMS ' || to_char(trunc(L.DTCOMPETENCIA, 'MM'), 'MM/YYYY')        
+       when C.CODCONTA = '100014'
+       then 'PAGAMENTO DE IRPJ ' || to_char(trunc(L.DTCOMPETENCIA, 'MM'), 'MM/YYYY')    
+       when C.CODCONTA = '100023'
+       then 'PAGAMENTO DE NF ' || L.NUMNOTA || '|'  || L.PREST || ' | ' || F.FORNECEDOR
+       when C.CODCONTA = '100011'
+       then 'PAGAMENTO DE PIS ' ||  to_char(trunc(L.DTCOMPETENCIA, 'MM'), 'MM/YYYY')
+       when C.CODCONTA = '100021'
+       then C.CONTA || L.NUMNOTA || ' | ' || F.FORNECEDOR  
+       when C.CODCONTA = '100017'   
+       then 'PAGAMENTO DE ICMS ST ' ||  to_char(trunc(L.DTCOMPETENCIA, 'MM'), 'MM/YYYY') 
+       when C.CODCONTA = '105'   
+       then 'DEVOLUÇÃO REF NF ' || L.NUMNOTA ||  ' | ' || F.FORNECEDOR    
+       when C.CODCONTA = '107'   
+       then 'RECEBIMENTO DE NF ' || L.NUMNOTA ||  ' | ' || F.FORNECEDOR                 
+       when C.CODCONTA = '108'   
+       then 'RECEBIMENTO DE NF ' || L.NUMNOTA ||  ' | ' || F.FORNECEDOR 
+       when C.CODCONTA = '101'   
+       then 'RECEBIMENTO DE NF ' || L.NUMNOTA ||  ' | ' || F.FORNECEDOR   
+       when C.CODCONTA = '201008'   
+       then 'RECEBIMENTO DE ' || C.CONTA ||L.NUMNOTA ||  ' | ' || F.FORNECEDOR   
+       when C.CODCONTA = '201007'   
+       then 'RECEBIMENTO DE ' || C.CONTA ||L.NUMNOTA ||  ' | ' || F.FORNECEDOR   
+       when C.CODCONTA = '201011'   
+       then 'RECEBIMENTO DE ' || C.CONTA ||L.NUMNOTA ||  ' | ' || F.FORNECEDOR   
+       when C.CODCONTA = '201014'   
+       then 'RECEBIMENTO DE ' || C.CONTA || L.NUMNOTA ||  ' | ' || F.FORNECEDOR   
+       when C.CODCONTA = '2010018'   
+       then C.CONTA || ' | ' || F.FORNECEDOR   
+       when C.CODCONTA = '2010003'   
+       then 'RECEBIMENTO REF ' || C.CONTA || L.NUMNOTA ||  ' | ' || F.FORNECEDOR    
+       when C.CODCONTA = '2010002'   
+       then 'RECEBIMENTO REF ' || C.CONTA || L.NUMNOTA ||  ' | ' || F.FORNECEDOR 
+       when C.CODCONTA = '2010013'   
+       then 'RECEBIMENTO REF ' || C.CONTA || L.NUMNOTA ||  ' | ' || F.FORNECEDOR   
+       when C.CODCONTA = '2020012'   
+       then 'RECEBIMENTO DE ' || C.CONTA || L.NUMNOTA ||  ' | ' || F.FORNECEDOR            
+       when C.CODCONTA = '2020007'   
+       then C.CONTA || ' | ' || L.NUMNOTA ||  ' | ' || F.FORNECEDOR  
+       when C.CODCONTA = '2020011'   
+       then 'RECEBIMENTO DE NF' || L.NUMNOTA ||  ' | ' || F.FORNECEDOR   
+       when C.CODCONTA = '2020010'   
+       then 'RECEBIMENTO DE NF' || L.NUMNOTA ||  ' | ' || F.FORNECEDOR  
+       when C.CODCONTA = '2020008'   
+       then 'RECEBIMENTO DE NF' || L.NUMNOTA ||  ' | ' || F.FORNECEDOR  
+       when C.CODCONTA = '2020009'   
+       then 'RECEBIMENTO DE NF' || L.NUMNOTA ||  ' | ' || F.FORNECEDOR      
+       when C.CODCONTA = '3010006'   
+       then 'PAGAMENTO DE ' || L.NUMNOTA || ' | ' || L.PREST || ' | ' || F.FORNECEDOR    
+       when C.CODCONTA = '3010003'   
+       then 'PAGAMENTO DE ' || L.NUMNOTA || ' | ' || L.PREST || ' | ' || F.FORNECEDOR    
+       when C.CODCONTA = '3010002'   
+       then 'PAGAMENTO DE ' || L.NUMNOTA || ' | ' || L.PREST || ' | ' || F.FORNECEDOR       
+       when C.CODCONTA = '3040011'   
+       then 'PAGAMENTO DE ' || L.NUMNOTA || ' | ' || L.PREST || ' | ' || F.FORNECEDOR
+       when C.CODCONTA = '3040017'   
+       then 'PAGAMENTO DE ' || L.NUMNOTA || ' | ' || L.PREST || ' | ' || F.FORNECEDOR
+       when C.CODCONTA = '3040023'   
+       then 'PAGAMENTO DE ' || L.NUMNOTA || ' | ' || L.PREST || ' | ' || F.FORNECEDOR
+       when C.CODCONTA = '3040013'   
+       then 'PAGAMENTO DE ' || L.NUMNOTA || ' | ' || L.PREST || ' | ' || F.FORNECEDOR
+       when C.CODCONTA = '3040028'   
+       then 'PAGAMENTO DE ' || L.NUMNOTA || ' | ' || L.PREST || ' | ' || F.FORNECEDOR     
+       when C.CODCONTA = '4020005'   
+       then 'PAGAMENTO DE ' || L.NUMNOTA || ' | ' || L.PREST || ' | ' || F.FORNECEDOR                                                                                               
        else 'NDd'
        end HISTORICO
  from PCLANC L
@@ -49,6 +118,8 @@ select * from PCNFENT where NUMNOTA ='118589';
 
 
 SELECT * FROM PCCRECLI WHERE CODCLI ='21755';
+
+SELECT * FROM PCCONTA;
 
 
 select * from PCMOV where NUMNOTA ='118589'
