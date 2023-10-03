@@ -1,0 +1,10 @@
+select AMBIENTENFE, SITUACAONFE from PCNFSAID where NUMNOTA = 19666;
+
+
+update PCNFSAID set AMBIENTENFE = 'P' where NUMNOTA = '19666';
+
+update PCNFSAID set SITUACAONFE = 'P' where NUMNOTA = '19666';
+
+update PCNFENT set AMBIENTENFE = 'P' where NUMNOTA = '19666';
+
+update PCNFEMT set SITUACAONFE = 'P' where NUMNOTA = '19666';
