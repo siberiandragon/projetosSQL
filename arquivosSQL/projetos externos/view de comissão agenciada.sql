@@ -1,7 +1,7 @@
-WITH CalculatedFields AS (
-    SELECT 
-    cast(CLI.FANTASIA as varchar(120)) AS FANTASIA,
-    cast(cli.cliente  as varchar(120)) as nomecli,
+with TRIGUN as (
+    select 
+    cast(CLI.FANTASIA as varchar(120)) as FANTASIA,
+    cast(cli.cliente  as varchar(120)) as CLIENTE,
     PED.OBS1,
     PED.OBS2,
     R.REGIAO,
@@ -9,168 +9,168 @@ WITH CalculatedFields AS (
     S.NUMNOTA,
     U.NOMECONTATO,
     U.CODCONTATO,
-    U.CARGO AS CODUSUR2,
-    S.numtransvenda,
-    S.VLTOTAL - S.VLFRETE AS vlvenda_itens,
-    S.VLTABELA - S.VLFRETE as vltabela_ITENS,
-    s.CODCLI,
-    P.CODUSUR2 AS USUR2_ATUAL,
+    U.CARGO as CODUSUR2,
+    S.NUMTRANSVENDA,
+    S.VLTOTAL - S.VLFRETE as VLVENDA_ITENS,
+    S.VLTABELA - S.VLFRETE as VLTABELA_ITENS,
+    S.CODCLI,
+    P.CODUSUR2 as USUR2_ATUAL,
     P.DTPAG,
     P.DTESTORNO,
     P.DTPAGCOMISSAO,
     P.DTPAGCOMISSAO2,
     P.DTPAGCOMISSAO3,
     P.DTPAGCOMISSAO4,
-    p.dtvenc,
-    s.dtsaida,
+    P.DTVENC,
+    S.DTSAIDA,
     P.DUPLIC,
     P.PREST,
     P.CODCOB,
-    p.CODCOBORIG,
+    P.CODCOBORIG,
     COB.COBRANCA,
-    p.VALOR,
+    P.VALOR,
     P.VALORORIG,
     P.VPAGO,
     S.VLFRETE,
     S.VLTOTAL,
     S.VLTABELA,
     P.NUMTRANSENTDEVCLI,
-    CASE WHEN VALOR < 0 THEN P.OBSFINANC 
-    ELSE '' END AS OBSFINANC,
-    CASE WHEN P.NUMTRANSENTDEVCLI IS NOT NULL THEN
-        (SELECT SUM(PUNITCONT*QTCONT) FROM PCMOV WHERE NUMTRANSENT = P.NUMTRANSENTDEVCLI)
-        WHEN S.DTDEVOL IS NOT NULL THEN S.VLDEVOLUCAO
-    END AS VLDEVOLVIDO,
-    P.DTDEVOL AS DTDEVOLPARCIAL,
-    trunc( ( (P.VALORORIG/(s.vltotal)) * (S.vltabela) * ((USUR.PERCENT2)/100)) / P.VALORORIG,5)*100  AS percom,
-    USUR.PERCENT2 AS COM_VENDEDOR,
-    USUR.CODUSUR AS CODVENDEDOR,
-    USUR.NOME AS VENDEDOR,
-    CASE 
-        WHEN P.DTPAGCOMISSAO IS NULL THEN 
-      TRUNC(( (P.VALORORIG/(s.vltotal)) * (S.vltabela) * ((USUR.PERCENT2)/100)) , 2)
-    ELSE 
+    case when VALOR < 0 then P.OBSFINANC 
+    else '' end as OBSFINANC,
+    case when P.NUMTRANSENTDEVCLI is not null then
+        (select SUM(PUNITCONT*QTCONT) from PCMOV where NUMTRANSENT = P.NUMTRANSENTDEVCLI)
+        when S.DTDEVOL is not null then S.VLDEVOLUCAO
+    end as VLDEVOLVIDO,
+    P.DTDEVOL as DTDEVOLPARCIAL,
+    trunc( ( (P.VALORORIG/(S.VLTOTAL)) * (S.VLTABELA) * ((USUR.PERCENT2)/100)) / P.VALORORIG,5)*100  as percom,
+    USUR.PERCENT2 as COM_VENDEDOR,
+    USUR.CODUSUR as CODVENDEDOR,
+    USUR.NOME as VENDEDOR,
+    case 
+        when P.DTPAGCOMISSAO is null then 
+      trunc(( (P.VALORORIG/(s.VLTOTAL)) * (S.VLTABELA) * ((USUR.PERCENT2)/100)) , 2)
+    else 
         0
-    END AS COMISSAO_VENDEDOR,
+    end as COMISSAO_VENDEDOR,
     
-    CASE 
-        WHEN (P.CODCOB IN ('DEVP','DEVT')) THEN '4-DEVOLU합ES'
-        WHEN P.VPAGO IS NOT NULL AND P.DTPAG IS NOT NULL THEN '1-FATURAS QUITADAS'
-        WHEN P.VPAGO IS NULL AND P.DTPAG IS NULL AND P.DTVENC < SYSDATE THEN '3-FATURAS VENCIDAS (CLIENTES EM ABERTO)'
-        WHEN P.VPAGO IS NULL AND P.DTPAG IS NULL AND P.DTVENC >= SYSDATE THEN '2-FATURAS A VENCER'
-    END AS STATUS,
+    case 
+        when (P.CODCOB IN ('DEVP','DEVT')) then '4-DEVOLU합ES'
+        when P.VPAGO is not null and P.DTPAG is not null then '1-FATURAS QUITADas'
+        when P.VPAGO is null and P.DTPAG is null and P.DTVENC < SYSDATE then '3-FATURAS VENCIDAS (CLIENTES EM ABERTO)'
+        when P.VPAGO is null and P.DTPAG is null and P.DTVENC >= SYSDATE then '2-FATURAS A VENCER'
+    end as STATUS,
     
-    CASE WHEN P.COMA_STATUSAPRV = 'C' THEN 'PAGO COM CREDITO'
-         WHEN P.COMA_STATUSAPRV = 'D' THEN 'PAGO COM NFE'
-         WHEN P.COMA_STATUSAPRV = 'E' THEN 'PAGO SEM NFE'
-         WHEN P.COMA_STATUSAPRV = 'A' THEN 'APROVADA PENDENTE PG'
-         WHEN P.COMA_STATUSAPRV = 'R' THEN 'REPROVADA'
-         WHEN P.COMA_STATUSAPRV IS NULL THEN 'PENDENTE APROVA플O'
-    ELSE 'DESCONHECIDO'
-    END AS STATUSAPRV,
+    case when P.COMA_STATUSAPRV = 'C' then 'PAGO COM CREDITO'
+         when P.COMA_STATUSAPRV = 'D' then 'PAGO COM NFE'
+         when P.COMA_STATUSAPRV = 'E' then 'PAGO SEM NFE'
+         when P.COMA_STATUSAPRV = 'A' then 'APROVADA PENDENTE PG'
+         when P.COMA_STATUSAPRV = 'R' then 'REPROVADA'
+         when P.COMA_STATUSAPRV is null then 'PENDENTE APROVA플O'
+    else 'DESCONHECIDO'
+    end as STATUSAPRV,
     
-    CASE WHEN (P.CODUSUR2 IS NULL or P.CODUSUR2 = 0) AND P.PERCOM2 =0 THEN 'PENDENTE'
-    ELSE 'APROVADO'
-    END AS APROVACAO,
+    case when (P.CODUSUR2 is null or P.CODUSUR2 = 0) and P.PERCOM2 =0 then 'PENDENTE'
+    else 'APROVADO'
+    end as APROVACAO,
     
-    CASE WHEN R.REGIAO LIKE '%CF%' AND (P.PERCOM2 = 0 OR P.PERCOM2 IS NULL)  THEN 
-   TRUNC((P.VALORORIG/s.vltotal) * ( S.vltotal - 
-        ( SELECT 
+    case when R.REGIAO LIKE '%CF%' and (P.PERCOM2 = 0 OR P.PERCOM2 is null)  then 
+   trunc((P.VALORORIG/s.VLTOTAL) * ( S.VLTOTAL - 
+        ( select 
             SUM(PI.QT*PR.PVENDA)
-          FROM
+          from
             PCPEDI PI,
             PCTABPR PR
-          WHERE 
+          where 
             PI.NUMPED = PED.NUMPED
-            AND PR.NUMREGIAO = PED.NUMREGIAO+1
-            AND PI.CODPROD = PR.CODPROD
+            and PR.NUMREGIAO = PED.NUMREGIAO+1
+            and PI.CODPROD = PR.CODPROD
         ) ),2)
         
-    WHEN P.PERCOM2 > 0 THEN TRUNC( (P.PERCOM2/100)*P.VALOR,2 ) 
+    when P.PERCOM2 > 0 then trunc( (P.PERCOM2/100)*P.VALOR,2 ) 
     
-    ELSE 0 END AS COMISSAO_AGENCIADOR,
+    else 0 end as COMISSAO_AGENCIADOR,
     
     
-     CASE 
-     WHEN R.REGIAO LIKE '%CF%' AND (P.PERCOM2 = 0 OR P.PERCOM2 IS NULL) THEN 
-       TRUNC(( S.vltotal - 
-            ( SELECT 
+     case 
+     when R.REGIAO LIKE '%CF%' and (P.PERCOM2 = 0 OR P.PERCOM2 is null) then 
+       trunc(( S.VLTOTAL - 
+            ( select 
                 SUM(PI.QT*PR.PVENDA)
-              FROM
+              from
                 PCPEDI PI,
                 PCTABPR PR
-              WHERE 
+              where 
                 PI.NUMPED = PED.NUMPED
-                AND PR.NUMREGIAO = PED.NUMREGIAO+1
-                AND PI.CODPROD = PR.CODPROD
-            ) ) / s.vltotal,5)*100
+                and PR.NUMREGIAO = PED.NUMREGIAO+1
+                and PI.CODPROD = PR.CODPROD
+            ) ) / S.VLTOTAL,5)*100
         
-        WHEN P.PERCOM2 > 0 THEN P.PERCOM2      
-        ELSE 0 END AS PERCOM2,
+        when P.PERCOM2 > 0 then P.PERCOM2      
+        else 0 end as PERCOM2,
     
-    CASE  
-    WHEN PED.COMA_VLTABPSD IS NOT NULL THEN PED.COMA_VLTABPSD
-    WHEN R.REGIAO LIKE '%CF%' THEN  
-        ( SELECT 
+    case  
+    when PED.COMA_VLTABPSD is not null then PED.COMA_VLTABPSD
+    when R.REGIAO LIKE '%CF%' then  
+        ( select 
             SUM(PI.QT*PR.PVENDA)
-          FROM
+          from
             PCPEDI PI,
             PCTABPR PR
-          WHERE 
+          where 
             PI.NUMPED = PED.NUMPED
-            AND PR.NUMREGIAO = PED.NUMREGIAO+1
-            AND PI.CODPROD = PR.CODPROD)
+            and PR.NUMREGIAO = PED.NUMREGIAO+1
+            and PI.CODPROD = PR.CODPROD)
                 
-    ELSE 0 END AS VL45REGIAO2,
+    else 0 end as VL45REGIAO2,
     
     P.COMA_DTPAGCOM,
     P.COMA_DTAPROV,
     
-    CASE WHEN S.DTDEVOL IS NOT NULL AND S.VLDEVOLUCAO = S.VLTOTAL  AND P.CODCOB = 'CRED' THEN 'DEV TOTAL COM CREDITO'
-         WHEN S.DTDEVOL IS NOT NULL AND S.VLDEVOLUCAO = S.VLTOTAL THEN 'DEV TOTAL'
-         WHEN S.DTDEVOL IS NOT NULL AND S.VLDEVOLUCAO < S.VLTOTAL THEN 'DEV PARCIAL' 
-         WHEN P.DTDEVOL IS NOT NULL AND S.VLDEVOLUCAO < S.VLTOTAL AND P.CODCOB = 'CRED' THEN 'DEV PARCIAL COM CREDITO'
-         WHEN P.DTDEVOL IS NOT NULL AND S.VLDEVOLUCAO < S.VLTOTAL THEN 'DEV PARCIAL'
-         ELSE 'SEM DEV'
-    END AS STATUS_DEV,
+    case when S.DTDEVOL is not null and S.VLDEVOLUCAO = S.VLTOTAL  and P.CODCOB = 'CRED' then 'DEV TOTAL COM CREDITO'
+         when S.DTDEVOL is not null and S.VLDEVOLUCAO = S.VLTOTAL then 'DEV TOTAL'
+         when S.DTDEVOL is not null and S.VLDEVOLUCAO < S.VLTOTAL then 'DEV PARCIAL' 
+         when P.DTDEVOL is not null and S.VLDEVOLUCAO < S.VLTOTAL and P.CODCOB = 'CRED' then 'DEV PARCIAL COM CREDITO'
+         when P.DTDEVOL is not null and S.VLDEVOLUCAO < S.VLTOTAL then 'DEV PARCIAL'
+         else 'SEM DEVOL'
+    end as STATUS_DEV,
     
-    CASE WHEN S.DTDEVOL IS NOT NULL THEN S.DTDEVOL
-        WHEN S.DTDEVOL IS NULL AND P.DTDEVOL IS NOT NULL THEN P.DTDEVOL
-        ELSE NULL
-   END AS DTDEVOL
+    case when S.DTDEVOL is not null then S.DTDEVOL
+        when S.DTDEVOL is null and P.DTDEVOL is not null then P.DTDEVOL
+        else null
+   end as DTDEVOL
 
-FROM 
+from 
     PCCONTATO U 
-    INNER JOIN PCPEDC PED ON PED.CODCONTATO = U.CODCONTATO
-    inner JOIN PCPREST P ON P.NUMTRANSVENDA = PED.NUMTRANSVENDA 
-        AND P.NUMPED = PED.NUMPED 
-        AND P.CODCLI = PED.CODCLI
-    INNER JOIN PCNFSAID S ON S.NUMTRANSVENDA = PED.NUMTRANSVENDA
-    INNER JOIN PCUSUARI USUR ON USUR.CODUSUR = s.CODUSUR
-    INNER JOIN PCCLIENT CLI ON CLI.CODCLI = P.CODCLI
-    INNER JOIN PCCOB COB ON COB.CODCOB = P.CODCOBORIG
-    INNER JOIN PCREGIAO R ON R.NUMREGIAO = PED.NUMREGIAO
+    inner join PCPEDC PED on PED.CODCONTATO = U.CODCONTATO
+    inner join PCPREST P on P.NUMTRANSVENDA = PED.NUMTRANSVENDA 
+        and P.NUMPED = PED.NUMPED 
+        and P.CODCLI = PED.CODCLI
+    inner join PCNFSAID S on S.NUMTRANSVENDA = PED.NUMTRANSVENDA
+    inner join PCUSUARI USUR on USUR.CODUSUR = s.CODUSUR
+    inner join PCCLIENT CLI on CLI.CODCLI = P.CODCLI
+    inner join PCCOB COB on COB.CODCOB = P.CODCOBORIG
+    inner join PCREGIAO R on R.NUMREGIAO = PED.NUMREGIAO
     
    
-WHERE 
+where 
     U.TIPOCONTATO = 'P'
-    AND s.DTCANCEL IS NULL
-    --AND (S.DTDEVOL IS NULL)
-    AND S.CONDVENDA IN (1,7)
-    AND S.DTCANCEL IS NULL
-    AND P.TIPOESTORNO IS NULL
-    AND (CASE WHEN P.CODCOB = 'DEVP' AND P.VPAGO > 0 THEN 'INVALID' 
-             WHEN P.CODCOB IN ('CARC','CHDV', 'JUR', 'VALE', 'CANC', 'TR', 'BNF', 'BNFT', 'BNFR', 'BNTR', 'BNRP') THEN 'INVALID'
-             WHEN P.CODCOB = 'DESD' AND P.CODCOBORIG IN ('CARV', 'CARD','CARP') AND P.VPAGO = 0 THEN 'VALID'
-             WHEN P.CODCOB = 'DESD' AND (SELECT X.CARTAO FROM PCCOB X WHERE X.CODCOB = P.CODCOBORIG ) = 'N' THEN 'INVALID'
-         ELSE 'VALID' END) = 'VALID'
+    and s.DTCANCEL is null
+    --and (S.DTDEVOL is null)
+    and S.CONDVENDA IN (1,7)
+    and S.DTCANCEL is null
+    and P.TIPOESTORNO is null
+    and (case when P.CODCOB = 'DEVP' and P.VPAGO > 0 then 'INVALID' 
+             when P.CODCOB IN ('CARC','CHDV', 'JUR', 'VALE', 'CANC', 'TR', 'BNF', 'BNFT', 'BNFR', 'BNTR', 'BNRP') then 'INVALID'
+             when P.CODCOB = 'DESD' and P.CODCOBORIG IN ('CARV', 'CARD','CARP') and P.VPAGO = 0 then 'VALID'
+             when P.CODCOB = 'DESD' and (select X.CARTAO from PCCOB X where X.CODCOB = P.CODCOBORIG ) = 'N' then 'INVALID'
+         else 'VALID' end) = 'VALID'
 Order by
     U.NOMECONTATO, P.DUPLIC, P.PREST, CLI.FANTASIA 
 )
 
-SELECT 
+select 
     FANTASIA,
-    nomecli,
+    CLIENTE,
     OBS1,
     OBS2,
     REGIAO,
@@ -179,9 +179,9 @@ SELECT
     NOMECONTATO,
     CODCONTATO,
     CODUSUR2,
-    numtransvenda,
-    vlvenda_itens,
-    vltabela_ITENS,
+    NUMTRANSVENDA,
+    VLVENDA_ITENS,
+    VLTABELA_ITENS,
     CODCLI,
     USUR2_ATUAL,
     DTPAG,
@@ -190,8 +190,8 @@ SELECT
     DTPAGCOMISSAO2,
     DTPAGCOMISSAO3,
     DTPAGCOMISSAO4,
-    dtvenc,
-    dtsaida,
+    DTVENC,
+    DTSAIDA,
     DUPLIC,
     PREST,
     CODCOB,
@@ -207,27 +207,27 @@ SELECT
     OBSFINANC,
     VLDEVOLVIDO,
     DTDEVOLPARCIAL,
-    percom,
+    PERCOM,
     COM_VENDEDOR,
     CODVENDEDOR,
     VENDEDOR,
     COMISSAO_VENDEDOR,
-    CASE 
-        WHEN CODFILIAL = 4 THEN ROUND(COMISSAO_AGENCIADOR * 0.85, 2)
-        ELSE ROUND(COMISSAO_AGENCIADOR * 0.75, 2)
-    END AS COMISSAO_COM_NFE,
-    CASE 
-        WHEN CODFILIAL = 4 THEN ROUND(COMISSAO_AGENCIADOR * 0.4, 2)
-        ELSE ROUND(COMISSAO_AGENCIADOR * 0.4, 2)
-    END AS COMISSAO_SEM_NFE,
-    CASE 
-        WHEN CODFILIAL = 4 THEN ROUND(COMISSAO_AGENCIADOR * 0.9, 2)
-        ELSE ROUND(COMISSAO_AGENCIADOR * 0.75, 2)
-    END AS COMISSAO_COM_CREDITO,
+    case 
+        when CODFILIAL = 4 then round(COMISSAO_AGENCIADOR * 0.85, 2)
+        else round(COMISSAO_AGENCIADOR * 0.75, 2)
+    end as COMISSAO_COM_NFE,
+    case 
+        when CODFILIAL = 4 then round(COMISSAO_AGENCIADOR * 0.4, 2)
+        else round(COMISSAO_AGENCIADOR * 0.4, 2)
+    end as COMISSAO_SEM_NFE,
+    case 
+        when CODFILIAL = 4 then round(COMISSAO_AGENCIADOR * 0.9, 2)
+        else round(COMISSAO_AGENCIADOR * 0.75, 2)
+    end as COMISSAO_COM_CREDITO,
     STATUS,
     STATUSAPRV,
     APROVACAO
-FROM 
-    CalculatedFields
+from 
+    TRIGUN
 ORDER BY
     NOMECONTATO, DUPLIC, PREST, FANTASIA;
