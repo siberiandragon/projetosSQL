@@ -1,4 +1,6 @@
-select M.DTMOV as Data_fat,
+select distinct
+       N.CODFILIAL as FILIAL,
+       M.DTMOV as Data_fat,
        I.NOME as RCA, 
        M.NUMNOTA as NFe,
        R.CGCENT as CNPJ,
@@ -12,8 +14,14 @@ select M.DTMOV as Data_fat,
        M.PUNIT as Vl_Unit,
        (M.PUNIT * M.QT) as TOTAL,
        M.PERCDESC as Desconto,
+       (T.QTESTGER - T.QTRESERV - T.QTBLOQUEADA) as EstDisp,
+       nvl(T.QTVENDMES1, 0) as Vendas_mes_1,   
+       nvl(T.QTVENDMES2, 0) as Vendas_mes_2,   
+       nvl(T.QTVENDMES3, 0) as Vendas_mes_3,
        C.DESCRICAO as Cobranca,
-       E.OBSENTREGA1
+       E.OBSENTREGA1,
+       decode(E.CONDVENDA,1, 'VENDA NORMAL',5, 'BONIFICAÇÂO',7, 'NOTA MÃE',8, 'NOTA FILHA',9, 'DEMOSNTRAÇÃO',10, 'TRANSFERÊNCIA') as TIPO_VENDA
+ 
 from PCMOV M
 join PCNFSAID N on M.NUMNOTA = N.NUMNOTA
 join PCCLIENT R on M.CODCLI = R.CODCLI
@@ -24,6 +32,7 @@ join PCPLPAG  C on N.CODPLPAG = C.CODPLPAG
 join PCPEDC   E on N.NUMNOTA = E.NUMNOTA
 join PCMARCA  M on P.CODMARCA = M.CODMARCA
 join PCUSUARI I on M.CODUSUR = I.CODUSUR
+join PCEST    T on P.CODPROD = T.CODPROD and N.CODFILIAL = T.CODFILIAL
 where 
 M.CODMARCA = '2'
 and R.CGCENT in 
@@ -60,28 +69,13 @@ and M.CODFILIAL in ('3')
 and M.CODCLI in ('3187')
 and I.CODUSUR in ('1077')
 and I.CODSUPERVISOR in ('3')  
+and M.PUNIT > 0 and M.QT > 0
+and E.CONDVENDA in ('1','7')
+and M.NUMNOTA = ('33332233')
 order by M.CODINTERNO;
 
 
-select CGCENT from PCCLIENT WHERE CODCLI ='3061' ;
 
-select * from PCMOV where NUMNOTA ='89274';
-
-select * from PCUSUARI;
-
-select * from PCPEDC where NUMNOTA ='52388';
-
-select CODCLI,CGCENT from PCCLIENT where length(CGCENT) = 18;
-
-select * from PCCLIENT where CODCLI =1654;
-
-
-UPDATE PCCLIENT
-SET CGCENT = REGEXP_REPLACE(CGCENT, '[^0-9]')
-WHERE length(CGCENT) = 18;
-
-
-SELECT * FROM PCPRODUT WHERE CODPROD ='804'
 
 
 
