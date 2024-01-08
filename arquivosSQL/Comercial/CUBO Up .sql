@@ -74,7 +74,7 @@ ORDER BY
   
   
   
---MARK 4 (alteração para trazer todos os clientes do CODUSUR)  
+--MARK 4 (alteraï¿½ï¿½o para trazer todos os clientes do CODUSUR)  
 select 
   PCCLIENT.CODCLI,
   max(PCEMPR.NOME) as RCA,
@@ -127,7 +127,7 @@ from
   left join PCNFSAID on PCCLIENT.CODCLI = PCNFSAID.CODCLI
   join PCROTINA on PCEMPR.MATRICULA = PCEMPR.MATRICULA
 where
-  PCEMPR.MATRICULA = '25' -- Substitua pelo valor da matrícula do vendedor em questão
+  PCEMPR.MATRICULA = '25' -- Substitua pelo valor da matrï¿½cula do vendedor em questï¿½o
   and PCROTINA.CODIGO = '8026'
   and (PCNFSAID.DTSAIDA is null or EXTRACT(YEAR from PCNFSAID.DTSAIDA) = EXTRACT(YEAR from SYSDATE))
 group by
@@ -141,7 +141,7 @@ order by
   
   
   
---MARK 5 (mudança para to_number em meses e ano/faturamento)
+--MARK 5 (mudanï¿½a para to_number em meses e ano/faturamento)
 select 
   PCCLIENT.CODCLI,
   max(PCEMPR.NOME) as RCA,
@@ -194,7 +194,7 @@ from
   left join PCNFSAID on PCCLIENT.CODCLI = PCNFSAID.CODCLI
   join PCROTINA on PCEMPR.MATRICULA = PCEMPR.MATRICULA
 where
-  PCEMPR.MATRICULA = '25' -- Substitua pelo valor da matrícula do vendedor em questão
+  PCEMPR.MATRICULA = '25' -- Substitua pelo valor da matrï¿½cula do vendedor em questï¿½o
   and PCROTINA.CODIGO = '8026'
   and (PCNFSAID.DTSAIDA is null or EXTRACT(YEAR from PCNFSAID.DTSAIDA) = EXTRACT(YEAR from SYSDATE))
 group by
@@ -205,3 +205,91 @@ order by
   CRED_DISP desc,
   max(PCCLIENT.DTULTCOMP),
   PCCLIENT.CODCLI;
+
+  --versÃ£o 2024
+
+  select 
+  C.CODCLI,
+  max(R.NOME) as RCA,
+  max(C.CLIENTE) as CLIENTE,
+  A.RAMO,
+  C.CGCENT as CNPJ,
+  C.TELENT as CELULAR,
+  C.TELCOB as TELEFONE,
+  C.MUNICCOB as MUNICIP,
+  C.ESTCOB as  UF,
+  to_char(C.LIMCRED - nvl((select sum(nvl(P1.VALOR, 0)) - sum(nvl(P1.VPAGO, 0))
+from PCPREST P1
+where 0=0
+and P1.CODCLI = C.CODCLI
+and P1.DTPAG is null
+and P1.CODCOB <> 'DESD'
+and P1.DTPAG is null ), 0), '9G999G999G999D99', 'NLS_NUMERIC_CHARACTERS = '',.''')as CRED_DISP,
+  to_char(nvl(max(C.LIMCRED), 0), '9G999G999G999D99', 'NLS_NUMERIC_CHARACTERS = '',.''') as LIMITE_CRED,
+  nvl(max(C.DTULTCOMP), '31/12/9999') as ULTIMA_COMPRA,
+  case
+    when trunc((SYSDATE - nvl(max(C.DTULTCOMP), SYSDATE)) / 366) > 0 
+    then trunc((SYSDATE - nvl(max(C.DTULTCOMP), SYSDATE)) / 366) || ' ANO(S) E ' || MOD(trunc(SYSDATE - nvl(max(C.DTULTCOMP), SYSDATE)), 366) || ' DIA(S) '
+    else trunc(SYSDATE - nvl(max(C.DTULTCOMP), SYSDATE)) || ' DIA(S)'
+  end DIAS_SEM_COMPRA,
+to_number(nvl((select 
+    sum(nvl(T1.VLTOTAL, 0))
+    from PCNFSAID T1
+    where 0=0
+      and T1.CODCLI = C.CODCLI
+      and EXTRACT(MONTH from T1.DTSAIDA) = EXTRACT(MONTH from ADD_MONTHS(SYSDATE, -1))
+      and EXTRACT(YEAR from T1.DTSAIDA) = EXTRACT(YEAR from ADD_MONTHS(SYSDATE, -1))
+      and T1.TIPOMOVGARANTIA is null
+      and T1.CONDVENDA in ('1','7')
+  ), 0)) as MES_ANTERIOR,
+to_number(nvl((select
+    SUM(nvl(T2.VLTOTAL, 0))
+    from PCNFSAID T2
+    where 0=0
+      and T2.CODCLI = C.CODCLI
+      and EXTRACT(MONTH from T2.DTSAIDA) = EXTRACT(MONTH from SYSDATE)
+      and EXTRACT(YEAR from T2.DTSAIDA) = EXTRACT(YEAR from SYSDATE)
+      and T2.TIPOMOVGARANTIA is null
+      and T2.CONDVENDA in ('1','7')
+  ), 0)) as MES_ATUAL,
+to_number(nvl((select
+    SUM(nvl(T3.VLTOTAL, 0))
+    from PCNFSAID T3
+    where 0=0
+      and T3.CODCLI = C.CODCLI
+      and EXTRACT(YEAR from T3.DTSAIDA) = EXTRACT(YEAR from SYSDATE)
+      and T3.TIPOMOVGARANTIA is null
+      and T3.CONDVENDA in ('1','7')
+  ), 0)) as ANO_ATUAL,
+to_number(nvl((select  
+    SUM(nvl(T4.VLTOTAL, 0))
+    from PCNFSAID T4
+    where 0=0 
+     and T4.CODCLI = C.CODCLI
+    -- and EXTRACT(YEAR from T4.DTSAIDA) = EXTRACT(YEAR from ADD_MONTHS(SYSDATE, -2))
+     and T4.TIPOMOVGARANTIA is null
+     and T4.CONDVENDA in ('1','7')
+  ), 0)) as ANO_ANTERIOR
+from
+  PCCLIENT C
+  left join PCEMPR R on C.CODUSUR1 = R.CODUSUR
+  left join PCNFSAID S on C.CODCLI = S.CODCLI
+  join PCROTINA I on R.MATRICULA = R.MATRICULA
+  left join PCATIVI A on S.CODATV1 = A.CODATIV
+where  0=0
+  and  R.MATRICULA in ('43') 
+  --and  PCNFSAID.CODATV1 in (:CODATV)    
+  and  I.CODIGO = '8040'
+  --and (PCNFSAID.DTSAIDA is null or EXTRACT(YEAR from PCNFSAID.DTSAIDA) = EXTRACT(YEAR from SYSDATE))
+group by
+  C.CODCLI,
+  C.LIMCRED,
+  C.CODUSUR1,
+  A.RAMO,
+  C.TELENT,
+  C.TELCOB,
+  C.MUNICCOB,
+  C.ESTCOB, 
+  C.CGCENT
+order by
+ANO_ANTERIOR DESC;
