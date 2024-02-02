@@ -1,0 +1,6 @@
+select P.CODPROD, P.CODFAB, P.DESCRICAO, P.CODMARCA 
+from PCPRODUT P
+where P.CODFAB in ('0700120', '400100PDP', '7899658705169', '2505', '4600162', '458045222', '15230', '15014PDP', '15015PDP', '4040', '5032')
+;
+
+select codfab from pcprodut where codprod = 6076
