@@ -62,7 +62,7 @@ with TRIGUN as (
         
     case 
         when (P.CODCOB in ('DEVP','DEVT')) 
-        then '4-DEVOLUÇÕES'
+        then '4-DEVOLUï¿½ï¿½ES'
         when P.VPAGO is not null and P.DTPAG is not null 
         then '1-FATURAS QUITADAS'
         when P.VPAGO is null and P.DTPAG is null and P.DTVENC < SYSDATE 
@@ -77,7 +77,7 @@ with TRIGUN as (
         when P.COMA_STATUSAPRV = 'E' then 'PAGO SEM NFE'
         when P.COMA_STATUSAPRV = 'A' then 'APROVADA PENDENTE PG'
         when P.COMA_STATUSAPRV = 'R' then 'REPROVADA'
-        when P.COMA_STATUSAPRV is null then 'PENDENTE APROVAÇÃO'
+        when P.COMA_STATUSAPRV is null then 'PENDENTE APROVAï¿½ï¿½O'
         else 'DESCONHECIDO'
         end as STATUSAPRV, 
         
@@ -250,7 +250,15 @@ select
         end as COMISSAO_COM_CREDITO,
     STATUS,
     STATUSAPRV,
-    APROVACAO
+    APROVACAO,
+    COMISSAO_AGENCIADOR,
+    PERCOM2,
+    VL45REGIAO2,
+    COMA_DTPAGCOM,
+    COMA_DTAPROV,
+    STATUS_DEV,
+    DTDEVOL,
+    
 from 
     TRIGUN
 order by
