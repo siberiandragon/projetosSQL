@@ -1,20 +1,19 @@
 select U.CODUSUR, 
        U.NOME ,
        U.VLVENDAPREV ,
-       (SELECT SUM(VLVENDAPREV)
-       FROM PCUSUARI U2 
-       WHERE U2.TIPOVEND = U.TIPOVEND
-       AND U2.CODSUPERVISOR = U.CODSUPERVISOR) TOTAL
+       (select SUM(VLVENDAPREV)
+       from PCUSUARI U2 
+       where U2.TIPOVEND = U.TIPOVEND
+       and U2.CODSUPERVISOR = U.CODSUPERVISOR) TOTAL
        from pcusuari U 
-       WHERE U.TIPOVEND ='I' 
-       AND U.CODSUPERVISOR  in('4') ;
+       where U.TIPOVEND ='I' 
+       and U.CODSUPERVISOR  in('4') ;
        
-       SELECT SUM(U.VLVENDAPREV) 
-       FROM PCUSUARI U
-       LEFT JOIN PCEMPR E ON U.CODUSUR = E.CODUSUR
-       WHERE 0=0
-       AND U.TIPOVEND = 'I'
-       AND E.SITUACAO = 'A'  
+       select SUM(U.VLVENDAPREV) 
+       from PCUSUARI U
+       left join PCEMPR E on U.CODUSUR = E.CODUSUR
+       where 0=0
+       and U.TIPOVEND = 'I'
+       and E.SITUACAO = 'A'  
 ;
 
-select * from PCEMPR where MATRICULA = 43
