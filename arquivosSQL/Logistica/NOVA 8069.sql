@@ -253,7 +253,7 @@ SELECT
         EMBALAGEM,
           UNIDADE; 
           
--- Mark 2 ( Modificação nos campos de SALDO, A_ENTREGAR e QTFURUTA. e inclusão da condição do CASE de A_ENTREGAR como um filtro de where, para trazer apenas os resultados que ainda possuem itens para ser entregues
+-- Mark 2 ( Modificaï¿½ï¿½o nos campos de SALDO, A_ENTREGAR e QTFURUTA. e inclusï¿½o da condiï¿½ï¿½o do CASE de A_ENTREGAR como um filtro de where, para trazer apenas os resultados que ainda possuem itens para ser entregues
 
 select *
 from (
@@ -515,10 +515,10 @@ order by
 		
 	
 
---Mark 3 ( Algo na Mark 2 não batia e sempre que tententei dar um jeitinho só piorava.
---         Então retornei como base a consulta do search feito no relatório Entrega.Fut da RT 335 
---         Com isso adicionei novamente os campos necessários e criei a condição de A_RECEBER sobre a consulta
---         Para trazer apenas os resultados importantes para o relatório, sem a necessidade de retirar a consistência da consulta sobre a nota)
+--Mark 3 ( Algo na Mark 2 nï¿½o batia e sempre que tententei dar um jeitinho sï¿½ piorava.
+--         Entï¿½o retornei como base a consulta do search feito no relatï¿½rio Entrega.Fut da RT 335 
+--         Com isso adicionei novamente os campos necessï¿½rios e criei a condiï¿½ï¿½o de A_RECEBER sobre a consulta
+--         Para trazer apenas os resultados importantes para o relatï¿½rio, sem a necessidade de retirar a consistï¿½ncia da consulta sobre a nota)
 select *
 from (
 select        
@@ -594,14 +594,14 @@ select
                                        0 PVENDAFUTURA, 
                                        0 VLTOTALFUTURA, 
                                       (NVL((select sum(pcmov.qt)
-                                            from pcestcom,
-                                                 pcmov
+                                            from PCESTCOM,
+                                                 PCMOV
                                             where 0=0
-											and pcestcom.numtransent = pcmov.numtransent
-                                            and pcmov.numped = pcpedc.numped
-                                            and pcmov.codprod = pcprodut.codprod
+											and PCESTCOM.NUMTRANSENT = PCMOV.NUMTRANSENT
+                                            and PCMOV.NUMPED = PCPEDC.NUMPED
+                                            and PCMOV.CODPROD = PCPRODUT.CODPROD
                                             and PCMOV.DTCANCEL is null
-                                            and pcmov.codprod = PCPEDI.codprod 
+                                            and PCMOV.CODPROD = PCPEDI.CODPROD 
                                             and PCMOV.NUMSEQ = PCPEDI.NUMSEQ),0)) as QTDEVOL
                                             from PCPEDI,
                                                  PCPEDC,
@@ -689,13 +689,14 @@ select
                                       0 QT, 
                                       PCPEDI.QT as QTFUTURA, 
                                      (NVL((select sum (pcmov.qt)
-                                           from pcestcom, pcmov
+                                           from PCESTCOM,
+                                                PCMOV
                                            where 0=0
-										   and pcestcom.numtransent = pcmov.numtransent
-                                           and pcmov.numped = pcpedc.numped
-                                           and pcmov.codprod = pcprodut.codprod
+										   and PCESTCOM.NUMTRANSENT = PCMOV.NUMTRANSENT
+                                           and PCMOV.NUMPED = PCPEDC.NUMPED
+                                           and PCMOV.CODPROD = PCPRODUT.CODPROD
                                            and PCMOV.DTCANCEL is null
-                                           and pcmov.codprod = PCPEDI.codprod  
+                                           and PCMOV.codprod = PCPEDI.CODPROD  
                                            and PCMOV.NUMSEQ = PCPEDI.NUMSEQ),0)) as QTDEVOL
                                            from PCPEDI,
                                                 PCPEDC,
