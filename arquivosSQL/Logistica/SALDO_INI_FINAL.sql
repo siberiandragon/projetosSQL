@@ -1,5 +1,8 @@
-SELECT                                                                                                                                         
-       SDINICIAL,                                                                   
+SELECT  CODFILIAL,
+        '01/03/2024',
+        '31/03/2024',
+        CODPROD,                                                                                                                                      
+        SDINICIAL,                                                                   
        (NVL(SDINICIAL, 0) + 
         NVL(QTENTRADA, 0) + 
         NVL(QTSAIDA, 0)) SDFINAL                                    
@@ -31,22 +34,24 @@ SELECT
                    END) QTSAIDA                                                     
                ,NVL((SELECT QTESTGER                                              
                      FROM PCHISTEST                                               
-                    WHERE CODPROD = 4041.000000                                      
+                    WHERE CODPROD in('4041')                                     
                       AND CODFILIAL = '4'                                  
                       AND ROWNUM = 1                                              
-                      AND TRUNC(DATA) = '29/02/2024'),                              
-                   0) SDINICIAL                                                   
+                      AND TRUNC(DATA) = TO_DATE('01/03/2024', 'DD/MM/YYYY') - 1),                                
+                   0) SDINICIAL,
+                   PCMOV.CODFILIAL,
+                   PCMOV.CODPROD                                               
           FROM PCMOV,
                PCEST,
                PCPRODUT,
                PCMOVCOMPLE                                  
-         WHERE PCMOV.CODPROD = 4041.000000                                             
+         WHERE PCMOV.CODPROD in ('4041')                                            
            AND PCMOV.NUMTRANSITEM = PCMOVCOMPLE.NUMTRANSITEM(+)                     
            AND NVL(PCMOVCOMPLE.MOVEST, 'S') = 'S'                               
            AND PCMOV.CODPROD = PCPRODUT.CODPROD                                     
            AND PCEST.CODPROD = PCMOV.CODPROD                                        
            AND PCEST.CODFILIAL = NVL(PCMOV.CODFILIALNF, PCMOV.CODFILIAL)            
-           AND TRUNC(PCMOV.DTMOV) BETWEEN '01/02/2024' AND '20/03/2024'                        
+           AND TRUNC(PCMOV.DTMOV) BETWEEN '01/03/2024' AND '31/03/2024'                        
            AND NVL(PCMOV.CODFILIALNF, PCMOV.CODFILIAL) = '4'                 
            AND PCMOV.STATUS IN ('B', 'AB')                                      
            AND (NOT EXISTS                                                          
@@ -75,4 +80,6 @@ SELECT
                                                 WHERE 0=0
                                                 AND NUMTRANSVENDA = PCMOV.NUMTRANSVENDA 
                                                 AND SITUACAONFE IN (110,205,301,302,303))                                                       
-GROUP BY PCEST.QTESTGER) 
+GROUP BY PCEST.QTESTGER,
+         PCMOV.CODFILIAL,
+         PCMOV.CODPROD) 
