@@ -762,7 +762,7 @@ where A_ENTREGAR > 0
 order by CODPROD,
          DESCRICAO,
          EMBALAGEM,
-         UNIDADE
+         UNIDADE;
          
 -- Mark 4 (inclusão da condição NUMPED not in, procurando ignorar numpeds que possuem resultado de tipo 8 onde tenham status pendente)
 select *
@@ -1093,5 +1093,490 @@ and NUMPED not in (
 order by CODPROD,
          DESCRICAO,
          EMBALAGEM,
-         UNIDADE
+         UNIDADE;
+         
+         
+--Mark 5 (Sinceramente sei nem oque dizer sobre as alterações, a consulta inteira foi reformulada para conseguir garantir os valores de QTFUTURA e QTDEDVOL8
+--        tivessem seus valores corretos e agrupados conforme a consulta principal. foi preciso se desfazer do union e criar uma subconsulta para cada um dos 
+--        dois campos, feito em conjunto com a correlação entre NUMPEDENTFUT e CODPROD das subconsultas com NUMPED e CODPROD da principal. isso deixa o codigo 
+--        um pouco lento mas garante o agrupamento.          
 
+select *
+from (
+select        
+       CODFILIALRETIRA FILIAL,
+       NUMNOTA N_NOTA,
+       NUMPED, 
+       CODCLI,
+       CLIENTE,
+       DATA,
+       CODPROD,
+       CODFAB,
+       DESCRICAO, 
+       EMBALAGEM, 
+       UNIDADE, 
+       sum(nvl(QT, 0)) QT, 
+       --sum(QTFUTURA) QTFUTURA, 
+       --sum(QT - QTFUTURA - (QTDEVOL7 - QTDEVOL8)) as QTSALDO, 
+            case 
+                when sum(nvl(QT,0) - nvl(QTFUTURA,0) - (nvl(QTDEVOL7,0) - nvl(QTDEVOL8,0))) <= 0 
+                then 0
+                else sum(nvl(QT,0) - nvl(QTFUTURA,0) - (nvl(QTDEVOL7,0) - nvl(QTDEVOL8,0)))
+            end as A_ENTREGAR,
+       max(QTDEVOL7) as QTDEVOL7, 
+       sum(nvl(QTDEVOL8,0)) as QTDEVOL8
+          
+  from (select TIPO7.CODFILIALRETIRA,
+               TIPO7.NUMNOTA,
+               TIPO7.NUMPED, 
+               TIPO7.CODCLI,
+               TIPO7.CLIENTE,
+               TIPO7.DATA,
+               TIPO7.CODPROD,
+               TIPO7.CODFAB,
+               TIPO7.DESCRICAO, 
+               TIPO7.EMBALAGEM, 
+               TIPO7.UNIDADE,  
+               sum(nvl(TIPO7.QT, 0)) QT, 
+               TIPO7.QTFUTURA, 
+                max(QTDEVOL) as  QTDEVOL7,
+                max(QTDEVOL8) as QTDEVOL8
+            from (select  CODPROD,
+                          NUMNOTA,
+                          DATA,
+                          CODFILIALRETIRA,
+                          NUMPED, 
+                          CODCLI,
+                          CLIENTE,
+                          CODFAB,
+                          DESCRICAO, 
+                          EMBALAGEM, 
+                          UNIDADE, 
+                          sum(NVL(QT, 0)) QT, 
+                          QTFUTURA, 
+                          sum(QTDEVOL8) as QTDEVOL8,
+                          sum(QTDEVOL) as  QTDEVOL
+                          from (select PCPEDI.CODPROD, 
+                                       PCPEDC.NUMNOTA,
+                                       PCPEDC.DATA,
+                                       PCPEDI.CODFILIALRETIRA,
+                                       PCPEDC.NUMPED,
+                                       PCPEDC.CODCLI,
+                                       PCCLIENT.CLIENTE,
+                                       PCPRODUT.CODFAB,
+                                       PCPRODUT.DESCRICAO, 
+                                       PCPRODUT.EMBALAGEM, 
+                                       PCPRODUT.UNIDADE,
+                                       PCPEDI.QT,  
+                                       PCPEDI.PVENDA, 
+                                      (NVL(PCPEDI.QT, 0) * NVL(PCPEDI.PVENDA, 0)) VLTOTAL, 
+                                      (NVL((select sum(pcmov.qt)
+                                            from PCESTCOM,
+                                                 PCMOV
+                                            where 0=0
+											and PCESTCOM.NUMTRANSENT = PCMOV.NUMTRANSENT
+                                            and PCMOV.NUMPED = PCPEDC.NUMPED
+                                            and PCMOV.CODPROD = PCPRODUT.CODPROD
+                                            and PCMOV.DTCANCEL is null
+                                            and PCMOV.CODPROD = PCPEDI.CODPROD 
+                                            and PCMOV.NUMSEQ = PCPEDI.NUMSEQ),0)) as QTDEVOL,
+                                            (select sum(QTDEVOL8)from (
+SELECT 
+    TIPO8.CODFILIALRETIRA,
+    MAX(TIPO8.NUMNOTA) AS NUMNOTA,
+    TIPO8.NUMPED, 
+    TIPO8.CODCLI,
+    TIPO8.CLIENTE,
+    MAX(TIPO8.DATA) AS DATA,
+    TIPO8.CODPROD,
+    TIPO8.CODFAB,
+    TIPO8.DESCRICAO, 
+    TIPO8.EMBALAGEM, 
+    TIPO8.UNIDADE, 
+    0 AS QT,
+    SUM(NVL(TIPO8.QTFUTURA, 0)) AS QTFUTURA, 
+    0 AS QTDEVOL7,
+    SUM(nvl(QTDEVOL8,0)) AS QTDEVOL8
+FROM (
+    SELECT 
+        CODPROD,
+        NUMNOTA,
+        DATA,
+        CODFILIALRETIRA,
+        NUMPED, 
+        CODCLI,
+        CLIENTE,
+        CODFAB,
+        DESCRICAO, 
+        EMBALAGEM, 
+        UNIDADE, 
+        0 AS QT, 
+        SUM(QTFUTURA) AS QTFUTURA, 
+        0 AS QTDEVOL7,
+        sum(nvl(QTDEVOL,0)) AS QTDEVOL8 
+    FROM (
+select                   CODPROD,
+                         NUMNOTA,
+                         DATA,
+                         CODFILIALRETIRA,
+                         NUMPED, 
+                         CODCLI,
+                         CLIENTE,
+                         CODFAB,
+                         DESCRICAO, 
+                         EMBALAGEM, 
+                         UNIDADE, 
+                         0 QT, 
+                         sum(QTFUTURA) QTFUTURA, 
+                         sum(NVL(QTDEVOL,0)) as QTDEVOL 
+                         from (select PI.CODPROD, 
+                                      PE.NUMNOTA,
+                                      PE.DATA,
+                                      PI.CODFILIALRETIRA,
+                                      PE.CODCLI,
+                                      PCCLIENT.CLIENTE,
+                                      PCPRODUT.CODFAB,
+                                      PCPRODUT.DESCRICAO, 
+                                      PCPRODUT.EMBALAGEM, 
+                                      PCPRODUT.UNIDADE, 
+                                      PE.NUMPEDENTFUT as NUMPED, 
+                                      0 QT, 
+                                      PI.QT as QTFUTURA, 
+                                     (NVL((select sum (pcmov.qt)
+                                           from PCESTCOM,
+                                                PCMOV
+                                           where 0=0
+										   and PCESTCOM.NUMTRANSENT = PCMOV.NUMTRANSENT
+                                           and PCMOV.NUMPED = PE.NUMPED
+                                           and PCMOV.CODPROD = PCPRODUT.CODPROD
+                                           and PCMOV.DTCANCEL is null
+                                           and PCMOV.codprod = PI.CODPROD  
+                                           and PCMOV.NUMSEQ = PI.NUMSEQ),0)) as QTDEVOL
+                                           from PCPEDI PI,
+                                                PCPEDC PE,
+                                                PCPRODUT,
+                                                PCUSUARI,
+                                                PCCLIENT
+                                           where 0=0
+                                           and PI.CODPROD = PCPRODUT.CODPROD 
+                                           and PE.NUMPED = PI.NUMPED 
+                                           and PE.CODUSUR = PCUSUARI.CODUSUR 
+                                           and PE.CODCLI = PCCLIENT.CODCLI
+                                           and PE.CONDVENDA = 8 
+                                           and PE.NUMPEDENTFUT = PCPEDC.NUMPED
+                                           and PI.CODPROD = PCPEDI.CODPROD
+                                           and PE.NUMPEDENTFUT is not null 
+                                           and TRUNC(PE.DATA) between '01/01/2023' and '17/04/2024'
+                                          -- and PCPEDC.NUMPED = 1122004907
+                                           and PE.POSICAO in ('','M','L','B','P','F','')
+                                           )
+                  group by CODPROD,
+                           NUMNOTA,
+                           DATA,
+                           CODCLI, 
+                           CLIENTE, 
+                           NUMPED, 
+                           CODFILIALRETIRA, 
+                           CODFAB,  
+                           DESCRICAO,
+                           EMBALAGEM, 
+                           UNIDADE
+    ) 
+    GROUP BY 
+        CODPROD,
+        NUMNOTA,
+        DATA,
+        CODCLI, 
+        CLIENTE, 
+        NUMPED, 
+        CODFILIALRETIRA, 
+        CODFAB,  
+        DESCRICAO,
+        EMBALAGEM, 
+        UNIDADE
+) TIPO8 
+GROUP BY 
+    TIPO8.CODPROD,
+    TIPO8.CODFILIALRETIRA, 
+    TIPO8.NUMPED,
+    TIPO8.CODCLI,
+    TIPO8.CLIENTE,
+    TIPO8.CODFAB,
+    TIPO8.DESCRICAO, 
+    TIPO8.EMBALAGEM, 
+    TIPO8.UNIDADE) )QTDEVOL8,
+(select sum(QTFUTURA) 
+from (
+SELECT 
+    TIPO8.CODFILIALRETIRA,
+    MAX(TIPO8.NUMNOTA) AS NUMNOTA,
+    TIPO8.NUMPED, 
+    TIPO8.CODCLI,
+    TIPO8.CLIENTE,
+    MAX(TIPO8.DATA) AS DATA,
+    TIPO8.CODPROD,
+    TIPO8.CODFAB,
+    TIPO8.DESCRICAO, 
+    TIPO8.EMBALAGEM, 
+    TIPO8.UNIDADE, 
+    0 AS QT,
+    SUM(NVL(TIPO8.QTFUTURA, 0)) AS QTFUTURA, 
+    0 AS QTDEVOL7,
+    SUM(QTDEVOL8) AS QTDEVOL8
+FROM (
+    SELECT 
+        CODPROD,
+        NUMNOTA,
+        DATA,
+        CODFILIALRETIRA,
+        NUMPED, 
+        CODCLI,
+        CLIENTE,
+        CODFAB,
+        DESCRICAO, 
+        EMBALAGEM, 
+        UNIDADE, 
+        0 AS QT, 
+        SUM(QTFUTURA) AS QTFUTURA, 
+        0 AS QTDEVOL7,
+        MAX(QTDEVOL) AS QTDEVOL8 
+    FROM (
+select                   CODPROD,
+                         NUMNOTA,
+                         DATA,
+                         CODFILIALRETIRA,
+                         NUMPED, 
+                         CODCLI,
+                         CLIENTE,
+                         CODFAB,
+                         DESCRICAO, 
+                         EMBALAGEM, 
+                         UNIDADE, 
+                         0 QT, 
+                         sum(QTFUTURA) QTFUTURA, 
+                         sum(NVL(QTDEVOL,0)) as QTDEVOL 
+                         from (select PI.CODPROD, 
+                                      PE.NUMNOTA,
+                                      PE.DATA,
+                                      PI.CODFILIALRETIRA,
+                                      PE.CODCLI,
+                                      PCCLIENT.CLIENTE,
+                                      PCPRODUT.CODFAB,
+                                      PCPRODUT.DESCRICAO, 
+                                      PCPRODUT.EMBALAGEM, 
+                                      PCPRODUT.UNIDADE, 
+                                      PE.NUMPEDENTFUT as NUMPED, 
+                                      0 QT, 
+                                      PI.QT as QTFUTURA, 
+                                     (NVL((select sum (pcmov.qt)
+                                           from PCESTCOM,
+                                                PCMOV
+                                           where 0=0
+										   and PCESTCOM.NUMTRANSENT = PCMOV.NUMTRANSENT
+                                           and PCMOV.NUMPED = PCPEDC.NUMPED
+                                           and PCMOV.CODPROD = PCPRODUT.CODPROD
+                                           and PCMOV.DTCANCEL is null
+                                           and PCMOV.codprod = PCPEDI.CODPROD  
+                                           and PCMOV.NUMSEQ = PCPEDI.NUMSEQ),0)) as QTDEVOL
+                                           from PCPEDI PI,
+                                                PCPEDC PE,
+                                                PCPRODUT,
+                                                PCUSUARI,
+                                                PCCLIENT
+                                           where 0=0
+                                           and PI.CODPROD = PCPRODUT.CODPROD 
+                                           and PE.NUMPED = PI.NUMPED 
+                                           and PE.CODUSUR = PCUSUARI.CODUSUR 
+                                           and PE.CODCLI = PCCLIENT.CODCLI
+                                           and PE.CONDVENDA = 8 
+                                           and PE.NUMPEDENTFUT = PCPEDC.NUMPED
+                                           and PI.CODPROD = PCPEDI.CODPROD
+                                           and PE.NUMPEDENTFUT is not null 
+                                           and TRUNC(PE.DATA) between '01/01/2023' and '17/04/2024'
+                                          -- and PCPEDC.NUMPED = 1122004907
+                                           and PE.POSICAO in ('','M','L','B','P','F','')
+                                           )
+                  group by CODPROD,
+                           NUMNOTA,
+                           DATA,
+                           CODCLI, 
+                           CLIENTE, 
+                           NUMPED, 
+                           CODFILIALRETIRA, 
+                           CODFAB,  
+                           DESCRICAO,
+                           EMBALAGEM, 
+                           UNIDADE,
+                           QTFUTURA
+    ) 
+    GROUP BY 
+        CODPROD,
+        NUMNOTA,
+        DATA,
+        CODCLI, 
+        CLIENTE, 
+        NUMPED, 
+        CODFILIALRETIRA, 
+        CODFAB,  
+        DESCRICAO,
+        EMBALAGEM, 
+        UNIDADE,
+        QTFUTURA
+) TIPO8 
+GROUP BY 
+    TIPO8.CODPROD,
+    TIPO8.CODFILIALRETIRA, 
+    TIPO8.NUMPED,
+    TIPO8.CODCLI,
+    TIPO8.CLIENTE,
+    TIPO8.CODFAB,
+    TIPO8.DESCRICAO, 
+    TIPO8.EMBALAGEM, 
+    TIPO8.UNIDADE,
+    TIPO8.QTFUTURA))QTFUTURA
+                                            from PCPEDI,
+                                                 PCPEDC,
+                                                 PCPRODUT,
+                                                 PCUSUARI,
+                                                 PCCLIENT
+                                            where 0=0 
+                                            and PCPEDI.CODPROD = PCPRODUT.CODPROD 
+                                            and PCPEDC.NUMPED = PCPEDI.NUMPED 
+                                            and PCPEDC.CODUSUR = PCUSUARI.CODUSUR 
+                                            and PCPEDC.CODCLI = PCCLIENT.CODCLI
+                                            and PCPEDC.CONDVENDA = 7 
+                                            and TRUNC(PCPEDC.DATA) between '01/01/2023' and '17/04/2024'
+                                            --and PCPEDC.NUMPED = 1122004907
+                                            --and PCPEDI.CODPROD = 107
+                                            --and PCPEDC.NUMNOTA in ('102854')
+                                            --and PCPEDC.CODCLI = 31496
+                                            and PCPEDC.POSICAO in ('','M','L','B','P','F','')
+                                            ) 
+                group by CODPROD,
+                         NUMNOTA,
+                         DATA,
+                         NUMPED, 
+                         CODCLI, 
+                         CLIENTE, 
+                         CODFILIALRETIRA,
+                         CODFAB,
+                         DESCRICAO, 
+                         EMBALAGEM,
+                         UNIDADE,
+                         QTFUTURA) TIPO7 
+ 
+   group by TIPO7.CODPROD,
+            TIPO7.NUMNOTA,
+            TIPO7.DATA,
+            TIPO7.CODFILIALRETIRA, 
+            TIPO7.NUMPED,                 
+            TIPO7.CODCLI,
+            TIPO7.CLIENTE,
+            TIPO7.CODFAB,
+            TIPO7.DESCRICAO, 
+            TIPO7.EMBALAGEM, 
+            TIPO7.UNIDADE,
+            TIPO7.QTFUTURA
+ 
+) 
+ 
+ where 1 = 1 
+ 
+group by CODFILIALRETIRA,
+         NUMNOTA, 
+         NUMPED, 
+         CODCLI,
+         CLIENTE,
+         DATA,
+         CODPROD,
+         CODFAB,
+         DESCRICAO, 
+         EMBALAGEM, 
+         UNIDADE,
+         QTFUTURA
+          
+order by CODPROD,
+         DESCRICAO,
+         EMBALAGEM,
+         UNIDADE 
+)condicao 
+where A_ENTREGAR > 0
+and NUMPED not in (
+ select NUMPED
+    from (
+ select            CODPROD,
+                   NUMNOTA,
+                   DATA,
+                   CODFILIALRETIRA,
+                   NUMPED, 
+                   CODCLI,
+                   CLIENTE,
+                   CODFAB,
+                   DESCRICAO, 
+                   EMBALAGEM, 
+                   UNIDADE, 
+                   POSICAO,
+                   0 QT, 
+                   sum(QTFUTURA) QTFUTURA, 
+                   sum(NVL(QTDEVOL,0)) as QTDEVOL 
+                   from (select PCPEDI.CODPROD, 
+                         PCPEDC.NUMNOTA,
+                         PCPEDC.DATA,
+                         PCPEDI.CODFILIALRETIRA,
+                         PCPEDC.CODCLI,
+                         PCCLIENT.CLIENTE,
+                         PCPRODUT.CODFAB,
+                         PCPRODUT.DESCRICAO, 
+                         PCPRODUT.EMBALAGEM, 
+                         PCPRODUT.UNIDADE, 
+                         PCPEDI.POSICAO,
+                         PCPEDC.NUMPEDENTFUT as NUMPED, 
+                         0 QT, 
+                         PCPEDI.QT as QTFUTURA, 
+                         (NVL((select sum (pcmov.qt)
+                               from PCESTCOM,
+                                    PCMOV
+                               where 0=0
+							   and PCESTCOM.NUMTRANSENT = PCMOV.NUMTRANSENT
+                               and PCMOV.NUMPED = PCPEDC.NUMPED
+                               and PCMOV.CODPROD = PCPRODUT.CODPROD
+                               and PCMOV.DTCANCEL is null
+                               and PCMOV.codprod = PCPEDI.CODPROD  
+                               and PCMOV.NUMSEQ = PCPEDI.NUMSEQ),0)) as QTDEVOL
+                      from PCPEDI,
+                           PCPEDC,
+                           PCPRODUT,
+                           PCUSUARI,
+                           PCCLIENT
+                      where 0=0
+                           and PCPEDI.CODPROD = PCPRODUT.CODPROD 
+                           and PCPEDC.NUMPED = PCPEDI.NUMPED 
+                           and PCPEDC.CODUSUR = PCUSUARI.CODUSUR 
+                           and PCPEDC.CODCLI = PCCLIENT.CODCLI
+                           and PCPEDC.CONDVENDA = 8 
+                           and PCPEDC.NUMPEDENTFUT is not null 
+                           and TRUNC(PCPEDC.DATA) between '01/01/2023' and '17/04/2024'
+                           --and PCPEDC.NUMNOTA in ('102854')
+                           --and PCPEDC.CODCLI = 31496
+                           and PCPEDC.POSICAO in ('P')
+            ) subconsulta
+            group by CODPROD,
+                     NUMNOTA,
+                     DATA,
+                     CODCLI, 
+                     CLIENTE, 
+                     NUMPED, 
+                     CODFILIALRETIRA, 
+                     CODFAB,  
+                     DESCRICAO,
+                     EMBALAGEM, 
+                     UNIDADE,
+                     POSICAO,
+                     QTFUTURA
+    ) subconsulta
+)
+
+order by CODPROD,
+         DESCRICAO,
+         EMBALAGEM,
+         UNIDADE 
