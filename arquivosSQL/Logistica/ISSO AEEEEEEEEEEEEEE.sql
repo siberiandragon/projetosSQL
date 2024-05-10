@@ -8,6 +8,7 @@ select * from
      , sum(nvl(QTSAIDOUTRAS,0)) OUTRASAID
      , QTINICIAL
      , QTFINAL
+     , CUSTOULTENTFIN ULT_CUSTO_FINANCEIRO
        from (select 
                    (select P.CODFAB from PCPRODUT P where P.CODPROD = M6.CODPROD) CODFAB                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
      ,      case 
@@ -97,7 +98,7 @@ end) QTSAIDA
       and CODPROD = M6.CODPROD                                         
       and CODFILIAL = '4'                                  
       and rownum = 1                                              
-      and trunc(DATA)= to_date ('01/03/2024', 'DD/MM/YYYY') - 1),0) SDINICIAL                                                   
+      and trunc(DATA)= to_date ('01/05/2024', 'DD/MM/YYYY') - 1),0) SDINICIAL                                                   
 from PCMOV M2,
      PCEST E2,
      PCPRODUT P2,
@@ -109,7 +110,7 @@ and nvl(C2.MOVEST, 'S') = 'S'
 and M2.CODPROD = P2.CODPROD                                     
 and E2.CODPROD = M2.CODPROD                                        
 and E2.CODFILIAL = nvl(M2.CODFILIALNF, M2.CODFILIAL)            
-and trunc(M2.DTMOV) between '01/03/2024' and '31/03/2024'                         
+and trunc(M2.DTMOV) between '01/05/2024' and '10/05/2024'                         
 and nvl(M2.CODFILIALNF, M2.CODFILIAL) = '4'                 
 and M2.STATUS in ('B', 'AB')                                      
 and (not exists                                                          
@@ -175,7 +176,7 @@ end) QTSAIDA
       and CODPROD = M6.CODPROD                                  
       and CODFILIAL = '4'                                  
       and rownum = 1                                              
-      and trunc(DATA) = to_date('01/03/2024','DD/MM/YYYY') - 1),0) SDINICIAL                                                   
+      and trunc(DATA) = to_date('01/05/2024','DD/MM/YYYY') - 1),0) SDINICIAL                                               
 from PCMOV M3,
      PCEST E3,
      PCPRODUT P4,
@@ -187,7 +188,7 @@ and nvl(C3.MOVEST, 'S') = 'S'
 and M3.CODPROD = P4.CODPROD                                     
 and E3.CODPROD = M3.CODPROD                                        
 and E3.CODFILIAL = nvl(M3.CODFILIALNF, M3.CODFILIAL)            
-and trunc(M3.DTMOV) between '01/03/2024' and '31/03/2024'                          
+and trunc(M3.DTMOV) between '01/05/2024' and '31/05/2024'                          
 and nvl(M3.CODFILIALNF, M3.CODFILIAL) = '4'                 
 and M3.STATUS in ('B', 'AB')                                      
 and (not exists                                                          
@@ -219,24 +220,28 @@ and (not exists
                                                 and S5.SITUACAONFE in (110,205,301,302,303))                                                       
                                
 group by E3.QTESTGER)) QTFINAL,
-P6.DESCRICAO
+P6.DESCRICAO,
+B.CUSTOULTENTFIN
   from PCMOV M6
      , PCEMPR E6
      , PCCLIENT I2
      , PCFORNEC F2
      , PCPRODUT P6
      , PCMOVCOMPLE C6 
+     , PCEST B
  where 0=0
    --and M6.CODPROD =('4047')    
    and M6.CODPROD = P6.CODPROD
    and M6.NUMTRANSITEM = C6.NUMTRANSITEM(+)
+   and B.CODPROD = M6.CODPROD
+   and B.CODFILIAL = M6.CODFILIAL 
    and nvl(C6.MOVEST, 'S') = 'S' 
    and M6.CODFORNEC = F2.CODFORNEC(+)
    and M6.CODFUNCLANC = E6.MATRICULA(+)
    --and M6.CODUSUR = E6.MATRICULA(+)
    and M6.CODCLI = I2.CODCLI(+)                                                                                                                           
-   and trunc(M6.DTMOV) between '01/03/2024' and '31/03/2024'                                                                                                               
-   and nvl(M6.CODFILIALNF, M6.CODFILIAL) = '4'                                                                                                        
+   and trunc(M6.DTMOV) between '01/05/2024' and '31/05/2024'                                                                                                               
+   and nvl(M6.CODFILIALNF, M6.CODFILIAL) = '2'                                                                                                        
    and M6.STATUS in ('B','AB')                                                                                                                              
    and ( not exists                                                                                                                                                
    (select P4.NUMPED 
@@ -269,6 +274,7 @@ group by CODFAB,
          CODPROD,
          QTINICIAL,
          QTFINAL,
-         DESCRICAO                                                                                                                                      
+         DESCRICAO,
+         CUSTOULTENTFIN                                                                                                                                     
          )
   
