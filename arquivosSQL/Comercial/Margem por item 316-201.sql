@@ -34,7 +34,10 @@ select case  when (select A.AGRUPAMENTO from PCORCAVENDAC A where A.NUMORCA = '1
    and PCTABTRIB.CODST       = PCTRIBUT.CODST  
    and DECODE(nvl(PCREGIAO.CODFILIAL,'99'),'99', '2', PCREGIAO.CODFILIAL) = EST.CODFILIAL
    and PCTABPR.CODPROD   = '804'
-   and PCTABPR.NUMREGIAO = (select C.NUMREGIAO from PCORCAVENDAC A join PCTABPRCLI C on A.CODCLI = C.CODCLI and C.CODFILIALNF = A.CODFILIAL where A.NUMORCA = '1003005387' 
+   and PCTABPR.NUMREGIAO = (select C.NUMREGIAO 
+                            from PCORCAVENDAC A 
+                            join PCTABPRCLI C on A.CODCLI = C.CODCLI and C.CODFILIALNF = A.CODFILIAL 
+                            where A.NUMORCA = '1003005387' 
                              )                                                      
    fetch first 1 rows only )
         else (select 0-0 from PCORCAVENDAC  fetch first 1 rows only)
@@ -69,4 +72,7 @@ from PCREGIAO
    and PCTABTRIB.CODST       = PCTRIBUT.CODST  
    and DECODE(nvl(PCREGIAO.CODFILIAL,'99'),'99', '2', PCREGIAO.CODFILIAL) = EST.CODFILIAL
    and PCTABPR.CODPROD   = '804'
-   and PCTABPR.NUMREGIAO = (select C.NUMREGIAO from PCORCAVENDAC A join PCTABPRCLI C on A.CODCLI = C.CODCLI and C.CODFILIALNF = A.CODFILIAL where A.NUMORCA = '1003005387') fetch first 1 rows only;
+   and PCTABPR.NUMREGIAO = (select C.NUMREGIAO 
+                            from PCORCAVENDAC A 
+                            join PCTABPRCLI C on A.CODCLI = C.CODCLI and C.CODFILIALNF = A.CODFILIAL 
+                            where A.NUMORCA = '1003005387') fetch first 1 rows only;
