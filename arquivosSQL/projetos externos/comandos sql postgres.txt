@@ -1,0 +1,25 @@
+docker ps | grep postgres - verificar dockers do postgres
+
+docker exec -it gva-aprovacao-db-1 psql -U postgres -d gva-aprovacao  - entrar no docker postgres
+
+
+--------------------------------------------------------------------------------
+
+select * from public.comissao_venda where id in ('7402','7403','7404');
+
+UPDATE public.comissao_venda
+SET responsavel_aprovacao_financeiro = 'Aprovação invalida',
+    valor_comissao_selecionada = '0'
+WHERE id IN ('7402','7403','7404');
+
+
+--------------------------------------------------------------------------------
+
+select * from VW_COMISSAO_AGENCIADA_TRY where numnota = 119667;
+
+
+update PCPREST set OBSFINANC = 'Aprovação invalida'
+where DUPLIC = 119667
+and prest = '3';
+
+SELECT OBSFINANC FROM PCPREST WHERE DUPLIC = 119667

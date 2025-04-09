@@ -9,7 +9,9 @@ select * from PCUSUARI;
 
 select * from PCPEDC where NUMNOTA ='52388';
 
-select CODCLI,CGCENT from PCCLIENT where length(CGCENT) = 18;
+select CODCLI,CGCENT from PCCLIENT where CGCENT like ('%-%');
+
+select CODCLI,CGCENT from PCCLIENT where length(CGCENT) = 14;
 
 
 select CODCLI,CGCCPF from PCCONTATO 
@@ -22,7 +24,7 @@ select * from PCCLIENT where CODCLI =3960;
 
 UPDATE PCCLIENT
 SET CGCENT = REGEXP_REPLACE(CGCENT, '[^0-9]')
-WHERE length(CGCENT) = 18;
+WHERE length(CGCENT) = 14;
 
 UPDATE PCCONTATO
 SET CGCCPF = REGEXP_REPLACE(CGCCPF, '[^0-9]')

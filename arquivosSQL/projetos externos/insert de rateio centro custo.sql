@@ -29,6 +29,6 @@ and P.dtlanc > '25/05/2024';
 
 select * from pcrateiocentrocusto where rotinainsert = 'TOAD 13.3.0.181' order by dtlanc desc;
 
-select PRCRATEIOUTILIZADO from pclanc where tipoparceiro = 'R' and dtlanc > '25/05/2024';
+select PRCRATEIOUTILIZADO from pclanc where tipoparceiro = 'R' and dtlanc > '12/05/2024';
 
-update pclanc set PRCRATEIOUTILIZADO = '100' where tipoparceiro = 'R' and dtlanc > '25/05/2024';
+update pclanc set PRCRATEIOUTILIZADO = '100' where tipoparceiro = 'R' and dtlanc > '12/06/2024';

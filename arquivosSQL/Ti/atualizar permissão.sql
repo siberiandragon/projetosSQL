@@ -1,29 +1,57 @@
- SELECT PCCONTROI.CODROTINA
-      ,PCCONTROI.CODUSUARIO
-      ,PCCONTROI.CODCONTROLE
-      ,PCCONTROI.ACESSO
-      ,PCROTINAI.DESCRICAO NOMECONTROLE
-FROM  PCCONTROI, PCROTINAI
-WHERE 
-PCCONTROI.CODCONTROLE = '29'
-AND
-PCCONTROI.CODROTINA = '316'
-AND 
-PCCONTROI.ACESSO = 'S'
-AND  
-PCCONTROI.CODUSUARIO in ('5', '8888', '68', '69', '73', '81', '83', '84', '86', '100', '31', '14', '22',
- '91', '92', '93', '25', '27', '34', '35', '38', '40', '42', '43', '45', '46', '48', '55', '56', '58',
-  '59', '121', '126', '99', '26', '125', '96', '97', '63', '107', '108', '119', '129', '130')
+select pccontroi.codrotina,
+       pccontroi.codusuario,
+       pcempr.nome,
+       pccontroi.codcontrole,
+       pccontroi.acesso,
+       pcrotinai.descricao nomecontrole
+  from pccontroi
+  join pcrotinai
+on pccontroi.codcontrole = pcrotinai.codcontrole
+   and pccontroi.codrotina = pcrotinai.codrotina
+  left join pcempr
+on pccontroi.codusuario = pcempr.matricula
+ where 0 = 0
+--AND PCCONTROI.CODROTINA = '931'
+--AND PCCONTROI.CODCONTROLE = '4'
+   and pccontroi.codusuario not in ( '9',
+                                     '16' )
+   and pccontroi.acesso = 'S'
+   and ( pcrotinai.descricao = 'Permitir criar/editar layout relatório'
+    or pcrotinai.descricao = 'Permitir alterar layout editável'
+    or pcrotinai.descricao = 'Permitir alterar relatório editável' )
+ order by pccontroi.codusuario;
 
-AND PCROTINAI.CODCONTROLE = PCCONTROI.CODCONTROLE
-AND PCROTINAI.CODROTINA = PCCONTROI.CODROTINA
-;
+select c.codusuario,
+       e.nome,
+       c.codrotina,
+       c.acesso,
+       c.codbanco,
+       c.codmoeda,
+       c.codepto
+  from pccontro c
+  left join pcempr e
+on c.codusuario = e.matricula
+ where 0 = 0
+   and c.codrotina = '1209'
+   and c.acesso = 'S'
+ order by c.codusuario;
 
-select P.NOME,C.* 
-from PCCONTROI C
-join PCEMPR P on C.CODUSUARIO = P.MATRICULA
-where C.CODROTINA = '1286';
 
-select * from PCCONTRO where CODROTINA = 1286;
+--UPDATE PCCONTROI SET ACESSO = 'N' WHERE CODROTINA = '604' and CODCONTROLE = '4' and CODUSUARIO not in ('9','13','16','17','18','33','120','148')
+--UPDATE PCCONTRO SET ACESSO = 'N' WHERE CODROTINA = '1209' and CODUSUARIO not in ('9','13','16','17','18','33','120','148')
 
---UPDATE PCCONTRO SET ACESSO = 'N' WHERE CODROTINA = '1286' and CODUSUARIO not in ('9','12','13','16','17','18','19','20','33','117','120')
+update pccontroi
+   set
+   acesso = 'N'
+ where acesso = 'S'
+   and codusuario not in ( '9',
+                           '16' )
+   and exists (
+   select 1
+     from pcrotinai
+    where pcrotinai.codcontrole = pccontroi.codcontrole
+      and pcrotinai.codrotina = pccontroi.codrotina
+      and ( pcrotinai.descricao = 'Permitir criar/editar layout relatório'
+       or pcrotinai.descricao = 'Permitir alterar layout editável'
+       or pcrotinai.descricao = 'Permitir alterar relatório editável' )
+);

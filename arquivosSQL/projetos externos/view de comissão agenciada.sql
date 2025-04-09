@@ -236,17 +236,23 @@ select
     case 
         when CODFILIAL = 4
         then round(COMISSAO_AGENCIADOR * 0.85, 2)
-        else round(COMISSAO_AGENCIADOR * 0.75, 2)
+        when trunc(DTSAIDA) < to_date('01/05/2024', 'DD/MM/YYYY')
+        then round(COMISSAO_AGENCIADOR * 0.75, 2)
+        else round(COMISSAO_AGENCIADOR * 0.7075, 2)
         end as COMISSAO_COM_NFE,
     case 
         when CODFILIAL = 4
         then round(COMISSAO_AGENCIADOR * 0.4, 2)
-        else round(COMISSAO_AGENCIADOR * 0.4, 2)
+        when trunc(DTSAIDA) < to_date('01/05/2024', 'DD/MM/YYYY') 
+        then round(COMISSAO_AGENCIADOR * 0.4, 2)
+        else round(COMISSAO_AGENCIADOR * 0.3625, 2)
         end as COMISSAO_SEM_NFE,
     case 
         when CODFILIAL = 4 
         then round(COMISSAO_AGENCIADOR * 0.9, 2)
-        else round(COMISSAO_AGENCIADOR * 0.75, 2)
+        when trunc(DTSAIDA) < to_date('01/05/2024', 'DD/MM/YYYY')
+        then round(COMISSAO_AGENCIADOR * 0.75, 2) 
+        else round(COMISSAO_AGENCIADOR * 0.7075, 2)
         end as COMISSAO_COM_CREDITO,
     STATUS,
     STATUSAPRV,
@@ -257,7 +263,7 @@ select
     COMA_DTPAGCOM,
     COMA_DTAPROV,
     STATUS_DEV,
-    DTDEVOL,
+    DTDEVOL
     
 from 
     TRIGUN
